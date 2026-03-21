@@ -116,7 +116,7 @@ class SettingsViewModel @Inject constructor(
                     lastSpeedTestRecommendedHeight = null,
                     lastSpeedTestEstimated = false,
                     isIncognitoMode = false,
-                    liveTvChannelMode = LiveTvChannelMode.COMFORTABLE
+                    liveTvChannelMode = LiveTvChannelMode.COMPACT
                 )
             }.combine(preferencesRepository.appLanguage) { snapshot, language ->
                 snapshot.copy(appLanguage = language)

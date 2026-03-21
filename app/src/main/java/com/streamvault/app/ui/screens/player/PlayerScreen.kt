@@ -602,10 +602,17 @@ fun PlayerScreen(
                 )
             },
             update = { renderView ->
+                // Only re-runs when aspectRatio changes (Compose tracks
+                // the read of aspectRatio above). PlayerView's internal
+                // AspectRatioFrameLayout handles video-size changes on
+                // its own — no need to rebind on every format change.
                 viewModel.playerEngine.bindRenderView(
                     renderView = renderView,
                     resizeMode = aspectRatio.toPlayerSurfaceResizeMode()
                 )
+            },
+            onRelease = { renderView ->
+                viewModel.playerEngine.releaseRenderView(renderView)
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -922,10 +929,10 @@ private fun buildResolutionBadgeLabel(
 ): String? {
     if (videoFormat.isEmpty) return null
     val selectedTrack = videoTracks.firstOrNull(PlayerTrack::isSelected)
-    return if (selectedTrack?.id == PLAYER_TRACK_AUTO_ID) {
+    return if (selectedTrack == null || selectedTrack.id == PLAYER_TRACK_AUTO_ID) {
         autoResolutionLabel
     } else {
-        videoFormat.resolutionLabel
+        selectedTrack.name
     }
 }
 

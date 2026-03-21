@@ -354,19 +354,20 @@ fun HomeScreen(
                         (category.isAdult || category.isUserProtected) && uiState.parentalControlLevel == 1
                     }
                 }
+                val unlockedVisibleCategories = remember(visibleCategories, uiState.parentalControlLevel) {
+                    visibleCategories.filterNot(isCategoryLocked)
+                }
                 var lastFocusedCategoryId by rememberSaveable { mutableStateOf<Long?>(null) }
                 var lastFocusedChannelId by rememberSaveable { mutableStateOf<Long?>(null) }
                 var preferredRestoreTarget by rememberSaveable { mutableStateOf(FocusRestoreTarget.CHANNEL.name) }
                 var shouldRestoreCategoryFocus by remember { mutableStateOf(false) }
                 var shouldRestoreChannelFocus by remember { mutableStateOf(false) }
 
-                val visibleCategoryIds = remember(visibleCategories) {
-                    visibleCategories.mapTo(mutableSetOf()) { it.id }
-                }
-                val displayedCategory = uiState.selectedCategory?.takeIf {
-                    it.id in visibleCategoryIds && !isCategoryLocked(it)
-                } ?: visibleCategories.firstOrNull { !isCategoryLocked(it) }
-                val hasBlockedCategorySearch = displayedCategory == null && visibleCategories.isNotEmpty()
+                val displayedCategory = uiState.selectedCategory?.takeIf { !isCategoryLocked(it) }
+                val hasBlockedCategorySearch =
+                    uiState.categorySearchQuery.isNotBlank() &&
+                        visibleCategories.isNotEmpty() &&
+                        unlockedVisibleCategories.isEmpty()
 
                 LaunchedEffect(uiState.categories) {
                     val validIds = uiState.categories.mapTo(mutableSetOf()) { it.id }
@@ -378,15 +379,16 @@ fun HomeScreen(
                     channelFocusRequesters.keys.retainAll(validIds)
                 }
 
-                LaunchedEffect(uiState.categorySearchQuery, displayedCategory?.id, isReorderMode, hasBlockedCategorySearch) {
+                LaunchedEffect(uiState.categories, uiState.selectedCategory?.id, uiState.parentalControlLevel, isReorderMode) {
                     if (isReorderMode) return@LaunchedEffect
-                    if (displayedCategory == null) {
-                        viewModel.clearVisibleChannelsForFilteredCategories()
+                    val selectedCategory = uiState.selectedCategory ?: return@LaunchedEffect
+                    if (!isCategoryLocked(selectedCategory)) {
                         return@LaunchedEffect
                     }
-                    val selectedCategory = uiState.selectedCategory
-                    if (selectedCategory?.id == displayedCategory.id) return@LaunchedEffect
-                    viewModel.selectCategory(displayedCategory)
+                    val fallbackCategory = uiState.categories.firstOrNull { !isCategoryLocked(it) } ?: return@LaunchedEffect
+                    if (fallbackCategory.id != selectedCategory.id) {
+                        viewModel.selectCategory(fallbackCategory)
+                    }
                 }
 
                 LaunchedEffect(
@@ -1106,6 +1108,9 @@ private fun LivePreviewPane(
                                 renderView = renderView,
                                 resizeMode = PlayerSurfaceResizeMode.FIT
                             )
+                        },
+                        onRelease = { renderView ->
+                            playerEngine.releaseRenderView(renderView)
                         },
                         modifier = Modifier.fillMaxSize()
                     )

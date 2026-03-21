@@ -545,11 +545,9 @@ class HomeViewModel @Inject constructor(
 
         epgJob = viewModelScope.launch {
             val freshProgramMap = if (epgIds.isNotEmpty()) {
-                epgRepository.getNowPlayingForChannels(providerId, epgIds)
-                    .firstOrNull()
-                    ?.mapNotNull { (epgId, program) -> program?.let { epgId to it } }
-                    ?.toMap()
-                    ?: emptyMap()
+                epgRepository.getNowPlayingForChannelsSnapshot(providerId, epgIds)
+                    .mapNotNull { (epgId, program) -> program?.let { epgId to it } }
+                    .toMap()
             } else {
                 emptyMap()
             }

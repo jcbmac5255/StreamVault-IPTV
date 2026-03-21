@@ -6,6 +6,8 @@ import android.media.AudioManager
 import android.net.Uri
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.graphics.Color as AndroidColor
+import android.view.LayoutInflater
 import android.view.View
 import androidx.annotation.OptIn
 import androidx.media3.common.C
@@ -15,11 +17,15 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.ScrubbingModeParameters
+import androidx.media3.exoplayer.mediacodec.MediaCodecInfo
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
+import androidx.media3.exoplayer.video.VideoRendererEventListener
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.rtsp.RtspMediaSource
@@ -27,6 +33,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.DecoderReuseEvaluation
+
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
@@ -43,7 +50,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
-import android.graphics.Color as AndroidColor
 import com.streamvault.domain.model.DrmInfo
 import com.streamvault.domain.model.DrmScheme
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -98,6 +104,9 @@ class Media3PlayerEngine @Inject constructor(
     private var preferredWifiMaxVideoHeight: Int? = null
     private var preferredEthernetMaxVideoHeight: Int? = null
     private var boundPlayerView: PlayerView? = null
+    /** Tracks the last video width/height so we can detect actual resolution changes. */
+    private var lastVideoWidth = 0
+    private var lastVideoHeight = 0
     /** Remembers the volume before mute so unmute restores it. */
     private var volumeBeforeMute = 1f
     /** Pre-warmed media source for rapid next-channel start. */
@@ -214,22 +223,7 @@ class Media3PlayerEngine @Inject constructor(
         exoPlayer?.volume = effectiveVolume()
     }
 
-    private fun applySubtitleStyle(playerView: PlayerView?) {
-        val subtitleView = playerView?.subtitleView ?: return
-        subtitleView.setStyle(
-            CaptionStyleCompat(
-                subtitleStyle.foregroundColorArgb,
-                subtitleStyle.backgroundColorArgb,
-                AndroidColor.TRANSPARENT,
-                CaptionStyleCompat.EDGE_TYPE_NONE,
-                AndroidColor.TRANSPARENT,
-                null
-            )
-        )
-        subtitleView.setFractionalTextSize(
-            SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * subtitleStyle.textScale.coerceIn(0.75f, 1.75f)
-        )
-    }
+
 
     private fun getOrCreatePlayer(): ExoPlayer {
         return exoPlayer ?: createPlayer().also {
@@ -241,7 +235,49 @@ class Media3PlayerEngine @Inject constructor(
     }
 
     private fun createPlayer(): ExoPlayer {
-        val renderersFactory = DefaultRenderersFactory(context).apply {
+        // Custom renderers factory that disables video decoder reuse.
+        // The emulator's goldfish H264 decoder (and some real HW decoders) produce
+        // zoom/crop artefacts when the codec is reused with a flush during ABR
+        // bitrate switches.  By returning REUSE_RESULT_NO the player creates a
+        // fresh decoder for every track switch, which is slightly heavier but
+        // eliminates the glitch entirely.
+        val renderersFactory = object : DefaultRenderersFactory(context) {
+            override fun buildVideoRenderers(
+                context: Context,
+                extensionRendererMode: Int,
+                mediaCodecSelector: MediaCodecSelector,
+                enableDecoderFallback: Boolean,
+                eventHandler: Handler,
+                eventListener: VideoRendererEventListener,
+                allowedVideoJoiningTimeMs: Long,
+                out: ArrayList<Renderer>
+            ) {
+                out.add(object : MediaCodecVideoRenderer(
+                    context,
+                    mediaCodecSelector,
+                    allowedVideoJoiningTimeMs,
+                    enableDecoderFallback,
+                    eventHandler,
+                    eventListener,
+                    50 // MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY
+                ) {
+                    override fun canReuseCodec(
+                        codecInfo: MediaCodecInfo,
+                        oldFormat: Format,
+                        newFormat: Format
+                    ): DecoderReuseEvaluation {
+                        Log.w(TAG, "DECODER_NO_REUSE: ${oldFormat.width}x${oldFormat.height}@${oldFormat.bitrate} -> ${newFormat.width}x${newFormat.height}@${newFormat.bitrate}")
+                        return DecoderReuseEvaluation(
+                            codecInfo.name,
+                            oldFormat,
+                            newFormat,
+                            DecoderReuseEvaluation.REUSE_RESULT_NO,
+                            DecoderReuseEvaluation.DISCARD_REASON_MAX_INPUT_SIZE_EXCEEDED
+                        )
+                    }
+                })
+            }
+        }.apply {
             setExtensionRendererMode(
                 when (currentDecoderMode) {
                     DecoderMode.AUTO -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
@@ -285,6 +321,7 @@ class Media3PlayerEngine @Inject constructor(
             )
             .build()
             .apply {
+                videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
                 playbackParameters = PlaybackParameters(_playbackSpeed.value)
                 trackSelectionParameters = trackSelectionParameters
                     .buildUpon()
@@ -297,9 +334,7 @@ class Media3PlayerEngine @Inject constructor(
                         decoderReuseEvaluation: DecoderReuseEvaluation?
                     ) {
                         decoderReuseEvaluation?.let { eval ->
-                            if (eval.result != 0) { // Not REUSE_RESULT_YES
-                                Log.d(TAG, "Decoder reuse: result=${eval.result}, discardReasons=${eval.discardReasons}")
-                            }
+                            Log.d(TAG, "Decoder reuse eval: result=${eval.result}, discardReasons=${eval.discardReasons}")
                         }
                         lastFrameRate = format.frameRate.takeIf { it > 0f } ?: lastFrameRate
                         _playerStats.update { 
@@ -323,6 +358,12 @@ class Media3PlayerEngine @Inject constructor(
                             ) 
                         }
                     }
+
+                    override fun onRenderedFirstFrame(
+                        eventTime: AnalyticsListener.EventTime,
+                        output: Any,
+                        renderTimeMs: Long
+                    ) { /* no-op */ }
 
                     override fun onDroppedVideoFrames(
                         eventTime: AnalyticsListener.EventTime,
@@ -379,11 +420,16 @@ class Media3PlayerEngine @Inject constructor(
                     }
 
                     override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+                        Log.d(TAG, "VIDEO_SIZE_CHANGED: ${videoSize.width}x${videoSize.height} (was ${lastVideoWidth}x${lastVideoHeight})")
                         _videoFormat.value = VideoFormat(
                             width = videoSize.width,
                             height = videoSize.height,
                             frameRate = lastFrameRate
                         )
+                        if (videoSize.width > 0 && videoSize.height > 0) {
+                            lastVideoWidth = videoSize.width
+                            lastVideoHeight = videoSize.height
+                        }
                     }
 
                     override fun onPlayerError(error: PlaybackException) {
@@ -493,6 +539,8 @@ class Media3PlayerEngine @Inject constructor(
         retryCount = 0
         lastFrameRate = 0f
         lastBandwidthStatsUpdateMs = 0L
+        lastVideoWidth = 0
+        lastVideoHeight = 0
         handler.removeCallbacksAndMessages(null)
         val player = getOrCreatePlayer()
         _error.tryEmit(null)
@@ -878,6 +926,8 @@ class Media3PlayerEngine @Inject constructor(
         preloadedStreamInfo = null
         mediaSession?.release()
         mediaSession = null
+        boundPlayerView?.player = null
+        boundPlayerView = null
         exoPlayer?.release()
         exoPlayer = null
         lastStreamInfo = null
@@ -1030,29 +1080,44 @@ class Media3PlayerEngine @Inject constructor(
     }
 
     override fun createRenderView(context: Context, resizeMode: PlayerSurfaceResizeMode): View {
-        return PlayerView(context).apply {
-            useController = false
-            setShutterBackgroundColor(AndroidColor.TRANSPARENT)
-            setKeepContentOnPlayerReset(false)
-            setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
-            enableComposeSurfaceSyncWorkaroundIfAvailable()
+        // Inflate PlayerView with surface_type="texture_view" —
+        // TextureView renders through the GPU/view pipeline, not SurfaceFlinger.
+        // This avoids the known Media3 issue where SurfaceView overflows its
+        // bounds inside Compose AndroidView (issue #1107), causing zoom/PiP.
+        return (LayoutInflater.from(context).inflate(
+            R.layout.player_texture_view, null
+        ) as PlayerView).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            setShutterBackgroundColor(AndroidColor.BLACK)
             applyResizeMode(resizeMode)
         }
     }
 
     override fun bindRenderView(renderView: View, resizeMode: PlayerSurfaceResizeMode) {
         val playerView = renderView as? PlayerView ?: return
-        val previousBoundView = boundPlayerView
-        boundPlayerView = playerView
         val player = getOrCreatePlayer()
-        playerView.enableComposeSurfaceSyncWorkaroundIfAvailable()
-        if (playerView.player !== player || previousBoundView !== playerView) {
+        if (boundPlayerView !== playerView) {
+            boundPlayerView?.player = null
+            playerView.player = player
+            boundPlayerView = playerView
+        } else if (playerView.player !== player) {
             playerView.player = player
         }
         playerView.applyResizeMode(resizeMode)
-        playerView.requestLayout()
-        playerView.invalidate()
         applySubtitleStyle(playerView)
+    }
+
+    override fun releaseRenderView(renderView: View) {
+        val playerView = renderView as? PlayerView ?: return
+        if (playerView.player != null) {
+            playerView.player = null
+        }
+        if (boundPlayerView === playerView) {
+            boundPlayerView = null
+        }
     }
 
     override fun setSubtitleStyle(style: PlayerSubtitleStyle) {
@@ -1060,18 +1125,28 @@ class Media3PlayerEngine @Inject constructor(
         applySubtitleStyle(boundPlayerView)
     }
 
+    private fun applySubtitleStyle(playerView: PlayerView?) {
+        val subtitleView = playerView?.subtitleView ?: return
+        subtitleView.setStyle(
+            CaptionStyleCompat(
+                subtitleStyle.foregroundColorArgb,
+                subtitleStyle.backgroundColorArgb,
+                AndroidColor.TRANSPARENT,
+                CaptionStyleCompat.EDGE_TYPE_NONE,
+                AndroidColor.TRANSPARENT,
+                null
+            )
+        )
+        subtitleView.setFractionalTextSize(
+            SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * subtitleStyle.textScale.coerceIn(0.75f, 1.75f)
+        )
+    }
+
     private fun PlayerView.applyResizeMode(surfaceResizeMode: PlayerSurfaceResizeMode) {
         resizeMode = when (surfaceResizeMode) {
             PlayerSurfaceResizeMode.FIT -> AspectRatioFrameLayout.RESIZE_MODE_FIT
             PlayerSurfaceResizeMode.FILL -> AspectRatioFrameLayout.RESIZE_MODE_FILL
             PlayerSurfaceResizeMode.ZOOM -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-        }
-    }
-
-    private fun PlayerView.enableComposeSurfaceSyncWorkaroundIfAvailable() {
-        runCatching {
-            javaClass.getMethod("setEnableComposeSurfaceSyncWorkaround", Boolean::class.javaPrimitiveType)
-                .invoke(this, true)
         }
     }
 

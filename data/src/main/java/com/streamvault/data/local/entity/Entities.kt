@@ -45,7 +45,8 @@ data class ProviderEntity(
         Index(value = ["provider_id"]),
         Index(value = ["provider_id", "category_id"]),
         Index(value = ["provider_id", "stream_id"], unique = true),
-        Index(value = ["logical_group_id"])
+        Index(value = ["logical_group_id"]),
+        Index(value = ["provider_id", "category_id", "logical_group_id"])
     ]
 )
 data class ChannelEntity(

@@ -79,9 +79,10 @@ interface ChannelDao {
         WHERE c.provider_id = :providerId
           AND channels_fts MATCH :query
         ORDER BY c.name ASC
+        LIMIT :limit
         """
     )
-    fun search(providerId: Long, query: String): Flow<List<ChannelEntity>>
+    fun search(providerId: Long, query: String, limit: Int): Flow<List<ChannelEntity>>
 
     @Query(
         """
@@ -91,9 +92,10 @@ interface ChannelDao {
           AND c.category_id = :categoryId
           AND channels_fts MATCH :query
         ORDER BY c.name ASC
+        LIMIT :limit
         """
     )
-    fun searchByCategory(providerId: Long, categoryId: Long, query: String): Flow<List<ChannelEntity>>
+    fun searchByCategory(providerId: Long, categoryId: Long, query: String, limit: Int): Flow<List<ChannelEntity>>
 
     @Query("SELECT * FROM channels WHERE id = :id")
     suspend fun getById(id: Long): ChannelEntity?
@@ -125,6 +127,24 @@ interface ChannelDao {
 
     @Query("SELECT category_id, COUNT(*) as item_count FROM channels WHERE provider_id = :providerId AND category_id IS NOT NULL GROUP BY category_id")
     fun getCategoryCounts(providerId: Long): Flow<List<CategoryCount>>
+
+    @Query(
+        """
+        SELECT
+            category_id,
+            COUNT(
+                DISTINCT CASE
+                    WHEN logical_group_id IS NOT NULL AND logical_group_id != '' THEN logical_group_id
+                    ELSE CAST(id AS TEXT)
+                END
+            ) AS item_count
+        FROM channels
+        WHERE provider_id = :providerId
+          AND category_id IS NOT NULL
+        GROUP BY category_id
+        """
+    )
+    fun getGroupedCategoryCounts(providerId: Long): Flow<List<CategoryCount>>
 
     @Query("SELECT COUNT(*) FROM channels WHERE provider_id = :providerId")
     fun getCount(providerId: Long): Flow<Int>
@@ -189,9 +209,10 @@ interface MovieDao {
         WHERE m.provider_id = :providerId
           AND movies_fts MATCH :query
         ORDER BY m.name ASC
+        LIMIT :limit
         """
     )
-    fun search(providerId: Long, query: String): Flow<List<MovieEntity>>
+    fun search(providerId: Long, query: String, limit: Int): Flow<List<MovieEntity>>
 
     @Query("SELECT * FROM movies WHERE id = :id")
     suspend fun getById(id: Long): MovieEntity?
@@ -350,9 +371,10 @@ interface SeriesDao {
         WHERE s.provider_id = :providerId
           AND series_fts MATCH :query
         ORDER BY s.name ASC
+        LIMIT :limit
         """
     )
-    fun search(providerId: Long, query: String): Flow<List<SeriesEntity>>
+    fun search(providerId: Long, query: String, limit: Int): Flow<List<SeriesEntity>>
 
     @Query("SELECT * FROM series WHERE id = :id")
     suspend fun getById(id: Long): SeriesEntity?
@@ -626,6 +648,9 @@ interface ProgramDao {
 
     @Query("SELECT * FROM programs WHERE provider_id = :providerId AND channel_id IN (:channelIds) AND start_time <= :now AND end_time > :now")
     fun getNowPlayingForChannels(providerId: Long, channelIds: List<String>, now: Long = System.currentTimeMillis()): Flow<List<ProgramEntity>>
+
+    @Query("SELECT * FROM programs WHERE provider_id = :providerId AND channel_id IN (:channelIds) AND start_time <= :now AND end_time > :now")
+    suspend fun getNowPlayingForChannelsSync(providerId: Long, channelIds: List<String>, now: Long = System.currentTimeMillis()): List<ProgramEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(programs: List<ProgramEntity>)

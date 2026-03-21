@@ -30,6 +30,11 @@ class ChannelRepositoryImpl @Inject constructor(
     private val parentalControlManager: com.streamvault.domain.manager.ParentalControlManager,
     private val xtreamStreamUrlResolver: XtreamStreamUrlResolver
 ) : ChannelRepository {
+    private companion object {
+        const val GLOBAL_SEARCH_LIMIT = 320
+        const val CATEGORY_SEARCH_LIMIT = 750
+        val QUALITY_HEIGHT_REGEX = Regex("(?<!\\d)(2160|1440|1080|720|576|480|360|240)p?(?!\\d)", RegexOption.IGNORE_CASE)
+    }
 
     private data class ChannelGroupAccumulator(
         var primary: ChannelEntity,
@@ -64,9 +69,9 @@ class ChannelRepositoryImpl @Inject constructor(
             } else {
                 combine(
                     if (categoryId == ChannelRepository.ALL_CHANNELS_ID) {
-                        channelDao.search(providerId, ftsQuery)
+                        channelDao.search(providerId, ftsQuery, CATEGORY_SEARCH_LIMIT)
                     } else {
-                        channelDao.searchByCategory(providerId, categoryId, ftsQuery)
+                        channelDao.searchByCategory(providerId, categoryId, ftsQuery, CATEGORY_SEARCH_LIMIT)
                     },
                     preferencesRepository.parentalControlLevel,
                     parentalControlManager.unlockedCategoriesForProvider(providerId)
@@ -88,36 +93,19 @@ class ChannelRepositoryImpl @Inject constructor(
     override fun getCategories(providerId: Long): Flow<List<Category>> =
         combine(
             categoryDao.getByProviderAndType(providerId, ContentType.LIVE.name),
-            channelDao.getByProvider(providerId),
+            channelDao.getGroupedCategoryCounts(providerId),
             preferencesRepository.parentalControlLevel,
             parentalControlManager.unlockedCategoriesForProvider(providerId)
-        ) { categories: List<CategoryEntity>, channelEntities: List<ChannelEntity>, level: Int, unlockedCats: Set<Long> ->
-            val filteredChannels = applyVisibilityFilter(channelEntities, level, unlockedCats)
-            val groupedChannels = groupPrimaryChannelEntities(filteredChannels)
-            val countMap = groupedChannels
-                .mapNotNull { entity -> entity.categoryId }
-                .groupingBy { categoryId -> categoryId }
-                .eachCount()
-
-            val allChannelsCategory = Category(
-                id = ChannelRepository.ALL_CHANNELS_ID,
-                name = "All Channels",
-                type = ContentType.LIVE,
-                count = groupedChannels.size
-            )
-            
+        ) { categories: List<CategoryEntity>, categoryCounts, level: Int, unlockedCats: Set<Long> ->
+            val countMap = categoryCounts.associate { count -> count.categoryId to count.item_count }
             val mappedCategories = categories.map { entity ->
                 val domain = entity.toDomain().copy(count = countMap[entity.categoryId] ?: 0)
-                // If unlocked, update domain model (though Category model doesn't strictly need it if we trust the check elsewhere, 
-                // but nice for UI to show 'unlocked' icon if we had one. For now just passing through).
-                 if (unlockedCats.contains(entity.categoryId)) {
+                if (unlockedCats.contains(entity.categoryId)) {
                     domain.copy(isUserProtected = false)
                 } else {
                     domain
                 }
             }
-            
-            // Filter categories if level is HIDDEN
             val filteredCategories = if (level == 2) {
                 mappedCategories.filter { category ->
                     (!category.isAdult && !category.isUserProtected) || unlockedCats.contains(category.id)
@@ -125,7 +113,14 @@ class ChannelRepositoryImpl @Inject constructor(
             } else {
                 mappedCategories
             }
-            
+
+            val allChannelsCategory = Category(
+                id = ChannelRepository.ALL_CHANNELS_ID,
+                name = "All Channels",
+                type = ContentType.LIVE,
+                count = filteredCategories.sumOf(Category::count)
+            )
+
             listOf(allChannelsCategory) + filteredCategories
         }
 
@@ -134,7 +129,7 @@ class ChannelRepositoryImpl @Inject constructor(
             if (ftsQuery.isBlank()) {
                 flowOf(emptyList())
             } else combine(
-                channelDao.search(providerId, ftsQuery),
+                channelDao.search(providerId, ftsQuery, GLOBAL_SEARCH_LIMIT),
                 preferencesRepository.parentalControlLevel,
                 parentalControlManager.unlockedCategoriesForProvider(providerId)
             ) { entities, level, unlockedCats ->
@@ -228,8 +223,13 @@ class ChannelRepositoryImpl @Inject constructor(
                 .sortedWith(channelPriorityComparator)
                 .map { it.streamUrl }
 
-            val mergedQualityOptions = buildMergedQualityOptions(primaryEntity, alternativeStreams)
-            val domain = primaryEntity.toDomain().copy(
+            val primaryDomain = primaryEntity.toDomain()
+            val mergedQualityOptions = buildMergedQualityOptions(
+                baseOptions = primaryDomain.qualityOptions,
+                primaryStreamUrl = primaryEntity.streamUrl,
+                alternativeStreams = alternativeStreams
+            )
+            val domain = primaryDomain.copy(
                 qualityOptions = mergedQualityOptions,
                 alternativeStreams = alternativeStreams
             )
@@ -274,24 +274,12 @@ class ChannelRepositoryImpl @Inject constructor(
             channelDao.getByCategoryWithoutErrors(providerId, categoryId)
         }
 
-    private fun groupPrimaryChannelEntities(entities: List<ChannelEntity>): List<ChannelEntity> {
-        val primaries = LinkedHashMap<String, ChannelEntity>()
-        entities.forEach { entity ->
-            val key = channelGroupKey(entity)
-            val current = primaries[key]
-            if (current == null || channelPriorityComparator.compare(entity, current) < 0) {
-                primaries[key] = entity
-            }
-        }
-        return primaries.values.toList()
-    }
-
     private fun buildMergedQualityOptions(
-        primaryEntity: ChannelEntity,
+        baseOptions: List<com.streamvault.domain.model.ChannelQualityOption>,
+        primaryStreamUrl: String,
         alternativeStreams: List<String>
     ): List<com.streamvault.domain.model.ChannelQualityOption> {
-        val baseOptions = primaryEntity.toDomain().qualityOptions
-        val derivedOptions = (listOf(primaryEntity.streamUrl) + alternativeStreams)
+        val derivedOptions = (listOf(primaryStreamUrl) + alternativeStreams)
             .mapNotNull(::deriveQualityOption)
         return (baseOptions + derivedOptions)
             .distinctBy { option -> option.height to option.label }
@@ -306,10 +294,6 @@ class ChannelRepositoryImpl @Inject constructor(
             height = height,
             url = url
         )
-    }
-
-    private companion object {
-        val QUALITY_HEIGHT_REGEX = Regex("(?<!\\d)(2160|1440|1080|720|576|480|360|240)p?(?!\\d)", RegexOption.IGNORE_CASE)
     }
 
     private fun channelGroupKey(entity: ChannelEntity): String =

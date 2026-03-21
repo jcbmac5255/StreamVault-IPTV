@@ -22,9 +22,7 @@ import com.streamvault.data.remote.xtream.XtreamUrlFactory
 import com.streamvault.data.security.CredentialCrypto
 import com.streamvault.data.util.AdultContentClassifier
 import com.streamvault.data.util.UrlSecurityPolicy
-import com.streamvault.domain.model.Channel
 import com.streamvault.domain.model.ContentType
-import com.streamvault.domain.model.Movie
 import com.streamvault.domain.model.Provider
 import com.streamvault.domain.model.ProviderType
 import com.streamvault.domain.model.SyncMetadata
@@ -92,17 +90,30 @@ class SyncManager @Inject constructor(
         val sourceName: String? = null
     )
 
+    private class StableLongHasher {
+        private val digest = MessageDigest.getInstance("SHA-256")
+
+        fun hash(input: String): Long {
+            val bytes = digest.digest(input.toByteArray(Charsets.UTF_8))
+            var result = 0L
+            for (i in 0 until 8) {
+                result = (result shl 8) or (bytes[i].toLong() and 0xFF)
+            }
+            return result and Long.MAX_VALUE
+        }
+    }
+
     private class CategoryAccumulator(
         private val providerId: Long,
         private val type: ContentType,
-        private val startId: Long  // retained for API compatibility but no longer used in ID generation
+        private val hasher: StableLongHasher
     ) {
         private val categoryIds = LinkedHashMap<String, Long>()
         val count: Int
             get() = categoryIds.size
 
         fun idFor(name: String): Long {
-            return categoryIds.getOrPut(name) { stableId(providerId, type, name) }
+            return categoryIds.getOrPut(name) { stableId(providerId, type, name, hasher) }
         }
 
         fun entities(): List<CategoryEntity> {
@@ -119,13 +130,13 @@ class SyncManager @Inject constructor(
         }
 
         /** Generates a stable, collision-resistant ID from the provider+type+name triple. */
-        private fun stableId(providerId: Long, type: ContentType, name: String): Long {
-            val key = "$providerId/${type.name}/$name"
-            val bytes = java.security.MessageDigest.getInstance("SHA-256")
-                .digest(key.toByteArray(Charsets.UTF_8))
-            var result = 0L
-            for (i in 0 until 8) result = (result shl 8) or (bytes[i].toLong() and 0xFF)
-            return (result and Long.MAX_VALUE).coerceAtLeast(1L)
+        private fun stableId(
+            providerId: Long,
+            type: ContentType,
+            name: String,
+            hasher: StableLongHasher
+        ): Long {
+            return hasher.hash("$providerId/${type.name}/$name").coerceAtLeast(1L)
         }
     }
 
@@ -451,8 +462,9 @@ class SyncManager @Inject constructor(
         progress(provider.id, onProgress, "Downloading Playlist...")
         val existingChannelIds = if (includeLive) channelDao.getIdMappings(provider.id).associate { it.remoteId to it.id } else emptyMap()
         val existingMovieIds = if (includeMovies) movieDao.getIdMappings(provider.id).associate { it.remoteId to it.id } else emptyMap()
-        val liveCategories = CategoryAccumulator(provider.id, ContentType.LIVE, 1L)
-        val movieCategories = CategoryAccumulator(provider.id, ContentType.MOVIE, 10_000L)
+        val stableLongHasher = StableLongHasher()
+        val liveCategories = CategoryAccumulator(provider.id, ContentType.LIVE, stableLongHasher)
+        val movieCategories = CategoryAccumulator(provider.id, ContentType.MOVIE, stableLongHasher)
         val channelBatch = ArrayList<ChannelEntity>(batchSize)
         val movieBatch = ArrayList<MovieEntity>(batchSize)
         val seenLiveStreamIds = if (includeLive) mutableSetOf<Long>() else null
@@ -464,8 +476,6 @@ class SyncManager @Inject constructor(
         var nextMilestone = PROGRESS_INTERVAL
         val warnings = mutableListOf<String>()
         var insecureStreamCount = 0
-        var publishedLiveCategoryCount = 0
-        var publishedMovieCategoryCount = 0
 
         openPlaylistStream(provider) { streamed ->
             progress(provider.id, onProgress, "Parsing Playlist...")
@@ -482,14 +492,6 @@ class SyncManager @Inject constructor(
                 ) { entry ->
                     parsedCount++
                     if (parsedCount >= nextMilestone) {
-                        if (includeLive && liveCategories.count > publishedLiveCategoryCount) {
-                            categoryDao.insertAll(liveCategories.entities())
-                            publishedLiveCategoryCount = liveCategories.count
-                        }
-                        if (includeMovies && movieCategories.count > publishedMovieCategoryCount) {
-                            categoryDao.insertAll(movieCategories.entities())
-                            publishedMovieCategoryCount = movieCategories.count
-                        }
                         progress(provider.id, onProgress, "Imported $parsedCount playlist entries...")
                         nextMilestone += PROGRESS_INTERVAL
                     }
@@ -506,24 +508,25 @@ class SyncManager @Inject constructor(
                             return@parseStreaming
                         }
                         val groupTitle = entry.groupTitle.ifBlank { "Uncategorized" }
-                        val stableStreamId = stableId(provider.id, entry.tvgId, entry.url)
+                        val stableStreamId = stableId(provider.id, entry.tvgId, entry.url, stableLongHasher)
+                        val categoryId = movieCategories.idFor(groupTitle)
+                        val isAdult = AdultContentClassifier.isAdultCategoryName(groupTitle)
                         seenMovieStreamIds?.add(stableStreamId)
-                        movieCategories.idFor(groupTitle)
                         movieBatch.add(
-                            Movie(
+                            MovieEntity(
                                 id = existingMovieIds[stableStreamId] ?: 0L,
+                                streamId = stableStreamId,
                                 name = entry.name,
                                 posterUrl = safeLogoUrl,
-                                categoryId = movieCategories.idFor(groupTitle),
+                                categoryId = categoryId,
                                 categoryName = groupTitle,
                                 streamUrl = entry.url,
                                 providerId = provider.id,
                                 rating = entry.rating?.toFloatOrNull() ?: 0f,
                                 year = entry.year,
                                 genre = entry.genre,
-                                isAdult = AdultContentClassifier.isAdultCategoryName(groupTitle),
-                                streamId = stableStreamId
-                            ).toEntity()
+                                isAdult = isAdult
+                            )
                         )
                         movieCount++
                         if (movieBatch.size >= batchSize) {
@@ -534,16 +537,18 @@ class SyncManager @Inject constructor(
                             return@parseStreaming
                         }
                         val groupTitle = entry.groupTitle.ifBlank { "Uncategorized" }
-                        val stableStreamId = stableId(provider.id, entry.tvgId, entry.url)
+                        val stableStreamId = stableId(provider.id, entry.tvgId, entry.url, stableLongHasher)
+                        val categoryId = liveCategories.idFor(groupTitle)
+                        val isAdult = AdultContentClassifier.isAdultCategoryName(groupTitle)
                         seenLiveStreamIds?.add(stableStreamId)
-                        liveCategories.idFor(groupTitle)
                         channelBatch.add(
-                            Channel(
+                            ChannelEntity(
                                 id = existingChannelIds[stableStreamId] ?: 0L,
+                                streamId = stableStreamId,
                                 name = entry.name,
                                 logoUrl = safeLogoUrl,
                                 groupTitle = groupTitle,
-                                categoryId = liveCategories.idFor(groupTitle),
+                                categoryId = categoryId,
                                 categoryName = groupTitle,
                                 epgChannelId = entry.tvgId ?: entry.tvgName,
                                 number = entry.tvgChno ?: 0,
@@ -552,9 +557,8 @@ class SyncManager @Inject constructor(
                                 catchUpDays = entry.catchUpDays ?: 0,
                                 catchUpSource = safeCatchUpSource,
                                 providerId = provider.id,
-                                isAdult = AdultContentClassifier.isAdultCategoryName(groupTitle),
-                                streamId = stableStreamId
-                            ).toEntity()
+                                isAdult = isAdult
+                            )
                         )
                         liveCount++
                         if (channelBatch.size >= batchSize) {
@@ -694,21 +698,17 @@ class SyncManager @Inject constructor(
         }
     }
 
-    private fun stableId(providerId: Long, tvgId: String?, url: String): Long {
+    private fun stableId(
+        providerId: Long,
+        tvgId: String?,
+        url: String,
+        hasher: StableLongHasher
+    ): Long {
         return if (!tvgId.isNullOrBlank()) {
-            hashToLong("$providerId:tvg:$tvgId")
+            hasher.hash("$providerId:tvg:$tvgId")
         } else {
-            hashToLong("$providerId:url:$url")
+            hasher.hash("$providerId:url:$url")
         }
-    }
-
-    private fun hashToLong(input: String): Long {
-        val digest = MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
-        var result = 0L
-        for (i in 0 until 8) {
-            result = (result shl 8) or (digest[i].toLong() and 0xFF)
-        }
-        return result and Long.MAX_VALUE
     }
 
     /** Delegates to M3uParser to avoid duplicate logic. */

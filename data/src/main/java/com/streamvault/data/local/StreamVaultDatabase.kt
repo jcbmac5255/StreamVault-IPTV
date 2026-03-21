@@ -26,7 +26,7 @@ import com.streamvault.data.local.entity.*
         PlaybackHistoryEntity::class,
         SyncMetadataEntity::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true   // ← was false; schema JSON now tracked in version control
 )
 @TypeConverters(RoomEnumConverters::class)
@@ -957,6 +957,15 @@ abstract class StreamVaultDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE programs ADD COLUMN genre TEXT")
                 database.execSQL("ALTER TABLE programs ADD COLUMN category TEXT")
                 database.execSQL("ALTER TABLE playback_history ADD COLUMN watched_status TEXT NOT NULL DEFAULT 'IN_PROGRESS'")
+            }
+        }
+
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_channels_provider_id_category_id_logical_group_id " +
+                        "ON channels(provider_id, category_id, logical_group_id)"
+                )
             }
         }
     }

@@ -352,6 +352,9 @@ private fun PlayerCell(
                                     resizeMode = PlayerSurfaceResizeMode.FILL
                                 )
                             },
+                            onRelease = { renderView ->
+                                engine.releaseRenderView(renderView)
+                            },
                             modifier = Modifier.fillMaxSize()
                         )
                     }

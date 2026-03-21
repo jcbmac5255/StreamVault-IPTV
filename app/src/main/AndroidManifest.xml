@@ -4,7 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="com.google.android.tv.permission.WRITE_EPG_DATA" />
+    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
     <uses-permission android:name="android.permission.BIND_TV_INPUT" />
 
     <uses-feature

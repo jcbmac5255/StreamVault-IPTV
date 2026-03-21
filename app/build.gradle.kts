@@ -13,7 +13,7 @@ plugins {
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    FileInputStream(keystorePropertiesFile).use(keystoreProperties::load)
 }
 
 android {
@@ -32,10 +32,10 @@ android {
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             create("release") {
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
             }
         }
     }

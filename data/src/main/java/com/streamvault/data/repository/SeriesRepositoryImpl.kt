@@ -36,6 +36,9 @@ class SeriesRepositoryImpl @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val xtreamStreamUrlResolver: XtreamStreamUrlResolver
 ) : SeriesRepository {
+    private companion object {
+        const val SEARCH_RESULT_LIMIT = 320
+    }
 
     private data class CachedXtreamProvider(
         val signature: String,
@@ -215,7 +218,7 @@ class SeriesRepositoryImpl @Inject constructor(
             if (ftsQuery.isBlank()) {
             flowOf(emptyList())
             } else combine(
-                seriesDao.search(providerId, ftsQuery),
+                seriesDao.search(providerId, ftsQuery, SEARCH_RESULT_LIMIT),
                 preferencesRepository.parentalControlLevel
             ) { entities: List<SeriesEntity>, level: Int ->
                 if (level == 2) {

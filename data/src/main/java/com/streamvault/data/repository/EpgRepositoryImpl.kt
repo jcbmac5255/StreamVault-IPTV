@@ -131,6 +131,25 @@ class EpgRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getNowPlayingForChannelsSnapshot(
+        providerId: Long,
+        channelIds: List<String>
+    ): Map<String, Program?> {
+        if (channelIds.isEmpty()) return emptyMap()
+
+        val now = System.currentTimeMillis()
+        val entities = if (channelIds.size <= 500) {
+            programDao.getNowPlayingForChannelsSync(providerId, channelIds, now)
+        } else {
+            channelIds.chunked(500).flatMap { chunk ->
+                programDao.getNowPlayingForChannelsSync(providerId, chunk, now)
+            }
+        }
+
+        val grouped = entities.map { it.toDomain() }.groupBy { it.channelId }
+        return channelIds.associateWith { id -> grouped[id]?.firstOrNull() }
+    }
+
     override fun getNowAndNext(providerId: Long, channelId: String): Flow<Pair<Program?, Program?>> =
         nowTicker().flatMapLatest { now ->
             programDao.getForChannel(

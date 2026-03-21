@@ -41,6 +41,9 @@ class MovieRepositoryImpl @Inject constructor(
     private val playbackHistoryDao: PlaybackHistoryDao,
     private val xtreamStreamUrlResolver: XtreamStreamUrlResolver
 ) : MovieRepository {
+    private companion object {
+        const val SEARCH_RESULT_LIMIT = 320
+    }
 
     override fun getMovies(providerId: Long): Flow<List<Movie>> =
         preferencesRepository.parentalControlLevel.flatMapLatest { level ->
@@ -227,7 +230,7 @@ class MovieRepositoryImpl @Inject constructor(
             if (ftsQuery.isBlank()) {
             flowOf(emptyList())
             } else combine(
-                movieDao.search(providerId, ftsQuery),
+                movieDao.search(providerId, ftsQuery, SEARCH_RESULT_LIMIT),
                 preferencesRepository.parentalControlLevel
             ) { entities: List<MovieEntity>, level: Int ->
                 if (level == 2) {

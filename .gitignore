@@ -20,8 +20,12 @@ captures/
 .cxx
 local.properties
 keystore.properties
+keystore/
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
 
 # Build output
 build_output_*.txt

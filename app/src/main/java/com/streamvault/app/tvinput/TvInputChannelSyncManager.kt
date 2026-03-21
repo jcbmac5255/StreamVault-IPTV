@@ -165,7 +165,6 @@ class TvInputChannelSyncManager @Inject constructor(
         put(CHANNEL_COLUMN_DISPLAY_NUMBER, channel.number.toString())
         put(CHANNEL_COLUMN_DISPLAY_NAME, channel.name)
         put(CHANNEL_COLUMN_DESCRIPTION, channel.categoryName ?: "IPTV")
-        put(CHANNEL_COLUMN_BROWSABLE, 1)
         put(CHANNEL_COLUMN_INTERNAL_PROVIDER_ID, channelKey(channel))
         put(CHANNEL_COLUMN_INTERNAL_PROVIDER_DATA, encodeChannelData(providerId, channel))
         put(CHANNEL_COLUMN_APP_LINK_INTENT_URI, buildChannelIntent(channel).toUri(Intent.URI_INTENT_SCHEME))

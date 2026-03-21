@@ -73,6 +73,7 @@ interface PlayerEngine {
 
     fun createRenderView(context: Context, resizeMode: PlayerSurfaceResizeMode): View
     fun bindRenderView(renderView: View, resizeMode: PlayerSurfaceResizeMode)
+    fun releaseRenderView(renderView: View)
 }
 
 enum class PlayerSurfaceResizeMode {

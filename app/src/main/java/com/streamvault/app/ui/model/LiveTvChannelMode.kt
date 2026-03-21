@@ -7,6 +7,6 @@ enum class LiveTvChannelMode {
 
     companion object {
         fun fromStorage(value: String?): LiveTvChannelMode =
-            entries.firstOrNull { it.name == value } ?: COMFORTABLE
+            entries.firstOrNull { it.name == value } ?: COMPACT
     }
 }
