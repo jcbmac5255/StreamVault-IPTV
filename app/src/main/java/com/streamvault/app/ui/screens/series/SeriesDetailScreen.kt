@@ -56,6 +56,9 @@ import com.streamvault.app.ui.model.formatVodRatingLabel
 import com.streamvault.domain.model.Episode
 import com.streamvault.domain.model.Season
 import com.streamvault.domain.model.Series
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun SeriesDetailScreen(
@@ -162,7 +165,7 @@ private fun SeriesDetailContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                Button(
+                TvButton(
                     onClick = onBack,
                     colors = ButtonDefaults.colors(
                         containerColor = AppColors.Surface.copy(alpha = 0.72f),
@@ -356,7 +359,7 @@ fun SeasonChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(999.dp)),
         colors = ClickableSurfaceDefaults.colors(
@@ -389,7 +392,7 @@ fun EpisodeItem(
     episode: Episode,
     onClick: () -> Unit
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(18.dp)),
         colors = ClickableSurfaceDefaults.colors(

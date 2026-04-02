@@ -75,6 +75,9 @@ import com.streamvault.player.PlayerSurfaceResizeMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 private enum class FocusRestoreTarget {
     CATEGORY,
@@ -589,7 +592,7 @@ fun HomeScreen(
                             item {
                                 Spacer(Modifier.height(8.dp))
                                 var isFocused by remember { mutableStateOf(false) }
-                                Surface(
+                                TvClickableSurface(
                                     onClick = { showSplitManagerDialog = true },
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1288,7 +1291,7 @@ private fun CategoryItem(
 ) {
     var isFocused by remember { mutableStateOf(false) }
     
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = Modifier
@@ -1412,18 +1415,18 @@ fun ReorderSidePanel(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
             ) {
-                androidx.tv.material3.Button(
+                TvButton(
                     onClick = onSave,
-                    colors = androidx.tv.material3.ButtonDefaults.colors(
+                    colors = ButtonDefaults.colors(
                         containerColor = Primary,
                         contentColor = Color.White
                     ),
                     modifier = Modifier.weight(1f)
                 ) { Text(stringResource(R.string.action_save), maxLines = 1) }
 
-                androidx.tv.material3.Button(
+                TvButton(
                     onClick = onCancel,
-                    colors = androidx.tv.material3.ButtonDefaults.colors(
+                    colors = ButtonDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = OnSurface
                     ),
@@ -1441,7 +1444,7 @@ fun ReorderSidePanel(
                     var isFocused by remember { mutableStateOf(false) }
                     val isDraggingThis = draggingChannel == channel
                     
-                    Surface(
+                    TvClickableSurface(
                         onClick = { 
                             draggingChannel = if (isDraggingThis) null else channel 
                         },

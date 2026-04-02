@@ -49,6 +49,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun ProgramHistoryDialog(
@@ -90,7 +93,7 @@ fun ProgramHistoryDialog(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    IconButton(onClick = onDismiss) {
+                    TvIconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = stringResource(R.string.add_group_close_cd)
@@ -120,7 +123,7 @@ fun ProgramHistoryDialog(
                         items(programs) { program ->
                             var isFocused by remember { mutableStateOf(false) }
 
-                            Surface(
+                            TvClickableSurface(
                                 onClick = { if (canInteract) onProgramSelect(program) },
                                 modifier = Modifier
                                     .fillMaxWidth()

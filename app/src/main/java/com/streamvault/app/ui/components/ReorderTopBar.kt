@@ -23,6 +23,9 @@ import com.streamvault.app.ui.theme.Primary
 import com.streamvault.app.ui.theme.SurfaceElevated
 import com.streamvault.app.ui.theme.TextPrimary
 import com.streamvault.app.ui.theme.TextSecondary
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun ReorderTopBar(
@@ -78,7 +81,7 @@ fun ReorderTopBar(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
+                    TvButton(
                         onClick = onCancel,
                         colors = ButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -96,7 +99,7 @@ fun ReorderTopBar(
                         Text(stringResource(R.string.action_cancel), modifier = Modifier.padding(horizontal = 8.dp))
                     }
 
-                    Button(
+                    TvButton(
                         onClick = onSave,
                         colors = ButtonDefaults.colors(
                             containerColor = Primary,

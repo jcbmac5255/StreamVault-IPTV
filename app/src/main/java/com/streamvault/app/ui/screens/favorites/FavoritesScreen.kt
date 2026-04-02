@@ -75,6 +75,9 @@ import com.streamvault.app.ui.theme.SurfaceElevated
 import com.streamvault.app.ui.theme.SurfaceHighlight
 import com.streamvault.domain.model.ContentType
 import kotlinx.coroutines.launch
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun FavoritesScreen(
@@ -793,7 +796,7 @@ private fun SavedHistoryRow(
             contentPadding = PaddingValues(vertical = 4.dp)
         ) {
             items(items, key = { "${it.history.contentType}:${it.history.contentId}" }) { item ->
-                Surface(
+                TvClickableSurface(
                     onClick = { onItemClick(item) },
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
                     colors = ClickableSurfaceDefaults.colors(
@@ -857,7 +860,7 @@ private fun SavedGroupManagementRow(
             contentPadding = PaddingValues(vertical = 4.dp)
         ) {
             items(groups, key = { "group-manage:${it.group.id}" }) { group ->
-                Surface(
+                TvClickableSurface(
                     onClick = { onGroupClick(group) },
                     onLongClick = { onGroupLongClick(group) },
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
@@ -1030,7 +1033,7 @@ private fun FavoriteRow(
 ) {
     val scale by animateFloatAsState(if (isReorderingThis) 1.03f else 1f, label = "favoriteRowScale")
 
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         onLongClick = {
             if (!isReorderMode) {

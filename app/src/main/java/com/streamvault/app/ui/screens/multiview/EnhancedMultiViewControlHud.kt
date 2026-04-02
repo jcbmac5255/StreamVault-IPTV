@@ -24,6 +24,9 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import com.streamvault.app.R
 import com.streamvault.app.ui.theme.Primary
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 internal fun EnhancedMultiViewControlHud(
@@ -122,7 +125,7 @@ internal fun EnhancedMultiViewControlHud(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
+            TvButton(
                 onClick = onShowReplacementPicker,
                 modifier = Modifier.focusRequester(firstControlFocusRequester),
                 colors = ButtonDefaults.colors(
@@ -134,7 +137,7 @@ internal fun EnhancedMultiViewControlHud(
             ) {
                 Text(stringResource(R.string.multiview_replace_slot))
             }
-            Button(
+            TvButton(
                 onClick = onRemoveFocusedSlot,
                 enabled = focused != null && !focused.isEmpty,
                 colors = ButtonDefaults.colors(
@@ -147,7 +150,7 @@ internal fun EnhancedMultiViewControlHud(
                 Text(stringResource(R.string.multiview_remove_slot))
             }
             if (uiState.pinnedAudioSlotIndex == uiState.focusedSlotIndex) {
-                Button(
+                TvButton(
                     onClick = onClearPinnedAudio,
                     colors = ButtonDefaults.colors(
                         containerColor = Color(0xFF203A5C),
@@ -159,7 +162,7 @@ internal fun EnhancedMultiViewControlHud(
                     Text(stringResource(R.string.multiview_audio_follow_focus))
                 }
             } else {
-                Button(
+                TvButton(
                     onClick = onPinAudioToFocusedSlot,
                     enabled = focused != null && !focused.isEmpty,
                     colors = ButtonDefaults.colors(
@@ -187,7 +190,7 @@ internal fun EnhancedMultiViewControlHud(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Button(
+                        TvButton(
                             onClick = { onLoadPreset(preset.index) },
                             colors = ButtonDefaults.colors(
                                 containerColor = Color.White.copy(alpha = 0.10f),
@@ -204,7 +207,7 @@ internal fun EnhancedMultiViewControlHud(
                                 }
                             )
                         }
-                        Button(
+                        TvButton(
                             onClick = { onSavePreset(preset.index) },
                             colors = ButtonDefaults.colors(
                                 containerColor = Color(0xFF172033),

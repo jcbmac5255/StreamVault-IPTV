@@ -83,6 +83,9 @@ import com.streamvault.player.PlayerStats
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 private fun PlayerOverlayPanel(
@@ -570,7 +573,7 @@ private fun QuickActionButton(
     onInteraction: () -> Unit = {},
     onClick: () -> Unit
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = {
             onInteraction()
             onClick()
@@ -705,7 +708,7 @@ fun ChannelListOverlay(
                                 color = Primary
                             )
                             if (!lastVisitedCategoryName.isNullOrBlank()) {
-                                Surface(
+                                TvClickableSurface(
                                     onClick = {
                                         onOverlayInteracted()
                                         onOpenLastGroup()
@@ -770,7 +773,7 @@ fun ChannelListOverlay(
                                             "recent:${channel.id}:${channel.streamId}:${channel.epgChannelId.orEmpty()}:${index}"
                                         }
                                     ) { index, channel ->
-                                        Surface(
+                                        TvClickableSurface(
                                             onClick = {
                                                 onOverlayInteracted()
                                                 onSelectChannel(channel.id)
@@ -829,7 +832,7 @@ fun ChannelListOverlay(
                             else -> AppColors.Surface.copy(alpha = 0.68f)
                         }
 
-                        Surface(
+                        TvClickableSurface(
                             onClick = {
                                 onSelectChannel(channel.id)
                                 onDismiss()
@@ -965,7 +968,7 @@ fun ChannelListOverlay(
             }
 
             // Vertical categories tab — fixed to the left edge, always visible
-            Surface(
+            TvClickableSurface(
                 onClick = {
                     onOverlayInteracted()
                     onOpenCategories()
@@ -1197,7 +1200,7 @@ fun EpgOverlay(
                         val focusToken = if (program.id > 0) program.id else program.startTime
                         val shouldRequestFocus = preferredFocusedProgramToken?.let { it == focusToken } ?: (index == 0)
 
-                        Surface(
+                        TvClickableSurface(
                             onClick = {
                                 if (program.hasArchive || currentChannel?.catchUpSupported == true) {
                                     onOverlayInteracted()
@@ -1433,7 +1436,7 @@ fun CategoryListOverlay(
                             else -> AppColors.Surface.copy(alpha = 0.68f)
                         }
 
-                        Surface(
+                        TvClickableSurface(
                             onClick = {
                                 onSelectCategory(category)
                             },

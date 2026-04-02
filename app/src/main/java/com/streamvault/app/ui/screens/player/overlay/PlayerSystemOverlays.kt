@@ -57,6 +57,9 @@ import com.streamvault.player.PlayerError
 import com.streamvault.player.PlayerTrack
 import com.streamvault.player.TrackType
 import java.util.Locale
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun PlayerNoticeBanner(
@@ -99,7 +102,7 @@ fun PlayerNoticeBanner(
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     notice.actions.forEach { action ->
-                        Surface(
+                        TvClickableSurface(
                             onClick = { onAction(action) },
                             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                             colors = ClickableSurfaceDefaults.colors(
@@ -165,7 +168,7 @@ fun PlayerErrorOverlay(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 recoveryActions.forEach { action ->
-                    Surface(
+                    TvClickableSurface(
                         onClick = { onAction(action) },
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                         colors = ClickableSurfaceDefaults.colors(
@@ -400,7 +403,7 @@ private fun TrackSelectionItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
         colors = ClickableSurfaceDefaults.colors(
@@ -482,7 +485,7 @@ fun PlayerResumePrompt(
             )
             Spacer(modifier = Modifier.height(32.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Surface(
+                TvClickableSurface(
                     onClick = onStartOver,
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                     colors = ClickableSurfaceDefaults.colors(
@@ -506,7 +509,7 @@ fun PlayerResumePrompt(
                     )
                 }
 
-                Surface(
+                TvClickableSurface(
                     onClick = onResume,
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
                     colors = ClickableSurfaceDefaults.colors(

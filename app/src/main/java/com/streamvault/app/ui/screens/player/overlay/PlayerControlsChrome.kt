@@ -80,6 +80,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 private data class PlayerActionSpec(
     val label: String,
@@ -464,7 +467,7 @@ private fun PlayerTopBar(
                     modifier = Modifier.padding(end = 16.dp)
                 )
 
-                Surface(
+                TvClickableSurface(
                     onClick = onClose,
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(999.dp)),
                     colors = ClickableSurfaceDefaults.colors(
@@ -958,7 +961,7 @@ private fun PlayerVodInfo(
                             down = quickActionsFocusRequester
                         }
                     )
-                    Surface(
+                    TvClickableSurface(
                         onClick = onTogglePlayPause,
                         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(50)),
                         colors = ClickableSurfaceDefaults.colors(
@@ -1195,7 +1198,7 @@ private fun PlayerQuickSettingsButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
         colors = ClickableSurfaceDefaults.colors(
@@ -1246,7 +1249,7 @@ private fun PlayerTransportButton(
         }
     }
 
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(50)),
         colors = ClickableSurfaceDefaults.colors(

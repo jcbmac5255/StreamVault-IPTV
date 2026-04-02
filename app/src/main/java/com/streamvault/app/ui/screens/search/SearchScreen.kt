@@ -1,6 +1,7 @@
 package com.streamvault.app.ui.screens.search
 
 import androidx.annotation.StringRes
+import com.streamvault.app.ui.interaction.TvClickableSurface
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -712,7 +713,7 @@ private fun SearchPill(
     modifier: Modifier = Modifier,
     compact: Boolean = false
 ) {
-    Surface(
+    TvClickableSurface(
         modifier = modifier,
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(CircleShape),

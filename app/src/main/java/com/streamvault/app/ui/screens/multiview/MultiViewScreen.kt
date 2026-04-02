@@ -84,6 +84,9 @@ import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
 import com.streamvault.app.ui.theme.Primary
 import com.streamvault.player.PlayerSurfaceResizeMode
 import kotlinx.coroutines.launch
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun MultiViewScreen(
@@ -321,7 +324,7 @@ private fun PlayerCell(
 ) {
     val showBorder = isFocused && showSelectionBorder
 
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = modifier
             .padding(2.dp)
@@ -549,25 +552,25 @@ private fun MultiViewControlHud(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
+            TvButton(
                 onClick = onShowReplacementPicker,
                 enabled = uiState.replacementCandidates.isNotEmpty(),
                 modifier = Modifier.focusRequester(firstControlFocusRequester)
             ) {
                 Text(stringResource(R.string.multiview_replace_slot))
             }
-            Button(
+            TvButton(
                 onClick = onRemoveFocusedSlot,
                 enabled = focused != null && !focused.isEmpty
             ) {
                 Text(stringResource(R.string.multiview_remove_slot))
             }
             if (uiState.pinnedAudioSlotIndex == uiState.focusedSlotIndex) {
-                Button(onClick = onClearPinnedAudio) {
+                TvButton(onClick = onClearPinnedAudio) {
                     Text(stringResource(R.string.multiview_audio_follow_focus))
                 }
             } else {
-                Button(
+                TvButton(
                     onClick = onPinAudioToFocusedSlot,
                     enabled = focused != null && !focused.isEmpty
                 ) {
@@ -580,7 +583,7 @@ private fun MultiViewControlHud(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 uiState.presets.forEach { preset ->
                     val presetLabel = stringResource(R.string.multiview_preset_label, preset.index + 1)
-                    Button(onClick = { onLoadPreset(preset.index) }) {
+                    TvButton(onClick = { onLoadPreset(preset.index) }) {
                         Text(
                             text = if (preset.isPopulated) {
                                 "$presetLabel (${preset.channelCount})"
@@ -589,7 +592,7 @@ private fun MultiViewControlHud(
                             }
                         )
                     }
-                    Button(onClick = { onSavePreset(preset.index) }) {
+                    TvButton(onClick = { onSavePreset(preset.index) }) {
                         Text(text = stringResource(R.string.multiview_preset_save, preset.index + 1))
                     }
                 }

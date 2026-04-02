@@ -52,6 +52,9 @@ import com.streamvault.app.ui.components.SelectionChip
 import com.streamvault.app.ui.components.SelectionChipRow
 import com.streamvault.app.ui.components.dialogs.PremiumDialog
 import com.streamvault.app.ui.components.dialogs.PremiumDialogFooterButton
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun VodSectionHeader(
@@ -104,7 +107,7 @@ fun VodHeroStrip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
@@ -235,7 +238,7 @@ fun VodCategoryPickerDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(filteredCategories, key = { it.name }) { category ->
-                            Surface(
+                            TvClickableSurface(
                                 onClick = {
                                     category.onClick()
                                     onDismiss()

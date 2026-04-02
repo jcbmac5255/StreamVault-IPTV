@@ -55,6 +55,9 @@ import com.streamvault.app.ui.components.shell.AppNavigationChrome
 import com.streamvault.app.ui.components.shell.AppScreenScaffold
 import com.streamvault.domain.model.ContentType
 import kotlinx.coroutines.launch
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 private enum class CategoryControlsMode {
     PROTECTION,
@@ -115,7 +118,7 @@ fun ParentalControlGroupScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
+                TvIconButton(
                     onClick = onBack,
                     modifier = Modifier.focusRequester(backButtonFocusRequester)
                 ) {
@@ -267,7 +270,7 @@ private fun CategoryModeChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(999.dp)),
         colors = ClickableSurfaceDefaults.colors(
@@ -368,7 +371,7 @@ private fun SettingsActionButton(
     emphasized: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         enabled = enabled,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
@@ -407,7 +410,7 @@ private fun CategoryProtectionCard(
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent
 
-    Surface(
+    TvClickableSurface(
         onClick = onToggle,
         enabled = !item.category.isAdult,
         modifier = Modifier
@@ -483,7 +486,7 @@ private fun CategoryVisibilityCard(
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent
 
-    Surface(
+    TvClickableSurface(
         onClick = onToggleHidden,
         modifier = Modifier
             .fillMaxWidth()

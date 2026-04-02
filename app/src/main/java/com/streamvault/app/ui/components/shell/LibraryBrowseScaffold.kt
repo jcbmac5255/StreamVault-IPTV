@@ -42,6 +42,9 @@ import com.streamvault.app.ui.components.rememberCrossfadeImageModel
 import com.streamvault.app.ui.design.AppColors
 import com.streamvault.app.ui.design.FocusSpec
 import com.streamvault.app.ui.design.LocalAppSpacing
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun LibraryBrowseScaffold(
@@ -172,7 +175,7 @@ fun BrowseSearchLaunchCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(22.dp)),
@@ -216,7 +219,7 @@ fun BrowseHeroPanel(
     metadata: List<String> = emptyList(),
     actionLabel: String
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
@@ -301,7 +304,7 @@ fun BrowseHeroPanel(
                 if (metadata.isNotEmpty()) {
                     ContentMetadataStrip(values = metadata)
                 }
-                Button(
+                TvButton(
                     onClick = onClick,
                     colors = ButtonDefaults.colors(
                         containerColor = AppColors.Brand,

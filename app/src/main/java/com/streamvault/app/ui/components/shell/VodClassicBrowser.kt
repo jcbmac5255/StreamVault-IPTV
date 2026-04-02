@@ -32,6 +32,9 @@ import com.streamvault.app.R
 import com.streamvault.app.ui.design.AppColors
 import com.streamvault.app.ui.design.FocusSpec
 import androidx.compose.ui.res.stringResource
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 data class VodClassicCategoryOption(
     val key: String,
@@ -68,7 +71,7 @@ fun VodClassicSplitLayout(
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             items(categories, key = { it.key }) { category ->
-                Surface(
+                TvClickableSurface(
                     onClick = category.onClick,
                     onLongClick = category.onLongClick,
                     modifier = Modifier.fillMaxWidth(),
@@ -183,7 +186,7 @@ private fun VodClassicHeaderActionButton(
     action: VodActionChip,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = action.onClick,
         modifier = modifier,
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(18.dp)),

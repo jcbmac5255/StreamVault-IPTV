@@ -51,6 +51,9 @@ import com.streamvault.app.ui.design.AppColors
 import com.streamvault.app.ui.design.requestFocusSafely
 import com.streamvault.app.ui.model.formatVodRatingLabel
 import com.streamvault.domain.model.Movie
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun MovieDetailScreen(
@@ -161,7 +164,7 @@ private fun MovieDetailContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                Button(
+                TvButton(
                     onClick = onBack,
                     colors = ButtonDefaults.colors(
                         containerColor = AppColors.Surface.copy(alpha = 0.72f),
@@ -284,7 +287,7 @@ private fun MovieDetailHeroText(
         MovieFactGrid(movie = movie)
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Button(
+            TvButton(
                 onClick = onPlay,
                 modifier = Modifier.focusRequester(playButtonFocusRequester),
                 colors = ButtonDefaults.colors(
@@ -299,7 +302,7 @@ private fun MovieDetailHeroText(
                 )
             }
             if (hasTrailer) {
-                Button(
+                TvButton(
                     onClick = onPlayTrailer,
                     colors = ButtonDefaults.colors(
                         containerColor = AppColors.SurfaceEmphasis,

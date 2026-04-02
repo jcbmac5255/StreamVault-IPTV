@@ -46,6 +46,9 @@ import com.streamvault.app.ui.design.AppColors
 import com.streamvault.app.ui.design.FocusSpec
 import com.streamvault.domain.model.Channel
 import kotlinx.coroutines.delay
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 @Composable
 fun MultiViewPlannerDialog(
@@ -184,7 +187,7 @@ private fun MultiViewSlotCard(
         else -> AppColors.Brand
     }
 
-    Surface(
+    TvClickableSurface(
         onClick = { if (isPickerMode) onSlotClick() else onClearSlot() },
         modifier = modifier.aspectRatio(16f / 9f),
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(18.dp)),

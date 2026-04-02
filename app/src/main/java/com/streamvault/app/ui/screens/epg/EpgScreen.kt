@@ -107,6 +107,9 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import com.streamvault.app.ui.interaction.TvClickableSurface
+import com.streamvault.app.ui.interaction.TvButton
+import com.streamvault.app.ui.interaction.TvIconButton
 
 private sealed interface LockedGuideAction {
     data class SelectCategory(val category: Category) : LockedGuideAction
@@ -801,7 +804,7 @@ private fun GuideSearchField(
         }
     }
 
-    Surface(
+    TvClickableSurface(
         onClick = {
             requestKeyboard()
         },
@@ -934,7 +937,7 @@ private fun GuideFilterRow(
                 items = categories,
                 key = { index, category -> epgCategoryKey(category, index) }
             ) { _, category ->
-                Surface(
+                TvClickableSurface(
                     onClick = { onCategorySelected(category.id) },
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = if (category.id == selectedCategoryId) Primary.copy(alpha = 0.18f) else SurfaceElevated,
@@ -1094,7 +1097,7 @@ private fun GuideDayRow(
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(dayAnchors, key = { it }) { dayStart ->
                 val isSelected = dayStart == selectedDayStart
-                Surface(
+                TvClickableSurface(
                     onClick = { onDaySelected(dayStart) },
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = if (isSelected) Primary.copy(alpha = 0.18f) else SurfaceElevated,
@@ -1148,7 +1151,7 @@ private fun GuideViewOptionsRow(
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
-                Surface(
+                TvClickableSurface(
                     onClick = onToggleScheduledOnly,
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = if (showScheduledOnly) Primary.copy(alpha = 0.18f) else SurfaceElevated,
@@ -1228,7 +1231,7 @@ private fun GuideShortcutChip(
     onClick: () -> Unit,
     isSelected: Boolean = false
 ) {
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = modifier,
         colors = ClickableSurfaceDefaults.colors(
@@ -1265,7 +1268,7 @@ private fun GuideOptionsToggleRow(
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 4.dp)
     ) {
-        Surface(
+        TvClickableSurface(
             onClick = onToggle,
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = SurfaceElevated,
@@ -1597,7 +1600,7 @@ private fun GuideToolbarButton(
     onFocused: () -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = modifier.onFocusChanged {
             if (it.isFocused && !focused) onFocused()
@@ -1917,14 +1920,14 @@ private fun CompactGuideProgramDialog(
                     )
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(
+                    TvButton(
                         onClick = onWatchLive,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(stringResource(R.string.epg_watch_live))
                     }
                     if (onWatchArchive != null) {
-                        Button(
+                        TvButton(
                             onClick = onWatchArchive,
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.colors(
@@ -1935,7 +1938,7 @@ private fun CompactGuideProgramDialog(
                             Text(stringResource(R.string.epg_watch_archive))
                         }
                     }
-                    Button(
+                    TvButton(
                         onClick = { showDetails = !showDetails },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.colors(
@@ -2014,7 +2017,7 @@ private fun GuideMessageState(
                 )
             }
             if (actionLabel != null && onAction != null) {
-                Button(
+                TvButton(
                     onClick = onAction,
                     colors = ButtonDefaults.colors(
                         containerColor = Primary,
@@ -2278,7 +2281,7 @@ fun EpgRow(
             .height(rowHeight),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
+        TvClickableSurface(
             onClick = onChannelClick,
             modifier = Modifier
                 .width(channelRailWidth)
@@ -2500,7 +2503,7 @@ fun ProgramItem(
         )
     }
 
-    Surface(
+    TvClickableSurface(
         onClick = onClick,
         modifier = Modifier
             .padding(start = itemStart, top = outerVerticalPadding, bottom = outerVerticalPadding)
@@ -2751,7 +2754,7 @@ private fun GuideCategoryLauncherRow(
     val selectedCategory = remember(categories, selectedCategoryId) {
         categories.firstOrNull { it.id == selectedCategoryId }
     }
-    Surface(
+    TvClickableSurface(
         onClick = onOpenCategoryPicker,
         modifier = modifier.widthIn(max = 320.dp),
         colors = ClickableSurfaceDefaults.colors(
@@ -2887,7 +2890,7 @@ private fun GuideCategoryPickerDialog(
                     ) { _, category ->
                         val isSelected = category.id == selectedCategoryId
                         val isLocked = isGuideCategoryLocked(category, parentalControlLevel)
-                        Surface(
+                        TvClickableSurface(
                             onClick = { onCategorySelected(category) },
                             modifier = if (category.id == filteredCategories.firstOrNull()?.id) {
                                 Modifier.focusRequester(firstCategoryFocusRequester)
