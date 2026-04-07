@@ -1,5 +1,12 @@
 # StreamVault
 
+<p align="center">
+	<a href="https://github.com/Davidona/StreamVault-IPTV/releases/latest/download/StreamVault.apk"><img src="https://img.shields.io/badge/Download-StreamVault.apk-2ea44f?style=for-the-badge&logo=android" alt="Download StreamVault APK" /></a>
+	<a href="https://github.com/Davidona/StreamVault-IPTV/releases/tag/v1.0.1"><img src="https://img.shields.io/badge/Version-1.0.1-0f766e?style=for-the-badge" alt="Current version 1.0.1" /></a>
+	<a href="https://github.com/Davidona/StreamVault-IPTV/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/Davidona/StreamVault-IPTV/release.yml?branch=master&style=for-the-badge&label=CI" alt="GitHub Actions status" /></a>
+	<a href="https://ko-fi.com/davidona"><img src="https://img.shields.io/badge/Support-Ko--fi-ff5f5f?style=for-the-badge&logo=kofi" alt="Support on Ko-fi" /></a>
+</p>
+
 StreamVault is a TV-first IPTV player for Android TV built with Kotlin, Jetpack Compose, Room, Hilt, and Media3.
 
 It is designed for large playlists, remote-friendly browsing, fast provider switching, and a polished living-room playback experience. StreamVault supports both `M3U` playlists and `Xtream Codes`, with dedicated flows for `Live TV`, `Movies`, and `Series`.
@@ -119,7 +126,8 @@ Built for Android TV first, StreamVault focuses on the things generic IPTV apps 
 ## Download
 
 - [Download latest StreamVault.apk](https://github.com/Davidona/StreamVault-IPTV/releases/latest/download/StreamVault.apk)
-- Every push to `master` now triggers GitHub Actions to build a fresh APK and publish it as the latest GitHub Release asset.
+- GitHub Actions still runs build and test validation on pushes and pull requests.
+- GitHub Releases are now published only when the workflow is started manually with `workflow_dispatch`, so versioned releases do not get created by mistake on every push.
 
 ## Support
 
