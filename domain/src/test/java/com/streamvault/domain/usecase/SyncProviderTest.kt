@@ -117,6 +117,7 @@ private class FakeSyncProviderRepository(
         url: String,
         name: String,
         epgSyncMode: ProviderEpgSyncMode,
+        m3uVodClassificationEnabled: Boolean,
         onProgress: ((String) -> Unit)?,
         id: Long?
     ): Result<Provider> = error("Not used in test")

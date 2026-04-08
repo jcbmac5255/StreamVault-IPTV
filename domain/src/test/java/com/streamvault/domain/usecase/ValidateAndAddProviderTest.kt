@@ -114,6 +114,7 @@ class ValidateAndAddProviderTest {
                 url = "file://playlist.m3u",
                 name = "Local Playlist",
                 epgSyncMode = ProviderEpgSyncMode.SKIP,
+                m3uVodClassificationEnabled = true,
                 id = 11L
             )
         )
@@ -161,6 +162,7 @@ private data class M3uCall(
     val url: String,
     val name: String,
     val epgSyncMode: ProviderEpgSyncMode,
+    val m3uVodClassificationEnabled: Boolean,
     val id: Long?
 )
 
@@ -200,10 +202,11 @@ private class FakeProviderRepository : ProviderRepository {
         url: String,
         name: String,
         epgSyncMode: ProviderEpgSyncMode,
+        m3uVodClassificationEnabled: Boolean,
         onProgress: ((String) -> Unit)?,
         id: Long?
     ): Result<Provider> {
-        lastM3uCall = M3uCall(url, name, epgSyncMode, id)
+        lastM3uCall = M3uCall(url, name, epgSyncMode, m3uVodClassificationEnabled, id)
         return Result.success(provider(id = id ?: 2L, name = name, type = ProviderType.M3U, m3uUrl = url))
     }
 
