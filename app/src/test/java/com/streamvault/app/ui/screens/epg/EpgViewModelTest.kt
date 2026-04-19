@@ -77,6 +77,7 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(null))
         runBlocking {
             whenever(epgRepository.getResolvedProgramsForChannels(any(), any(), any(), any())).thenReturn(emptyMap())
+            whenever(epgRepository.getProgramsForChannelsSnapshot(any(), any(), any(), any())).thenReturn(emptyMap())
             whenever(epgRepository.getProgramsForChannels(any(), any(), any(), any())).thenReturn(flowOf(emptyMap()))
         }
         whenever(favoriteRepository.getGroups(any<Long>(), eq(ContentType.LIVE))).thenReturn(flowOf(emptyList()))
@@ -156,21 +157,19 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideScheduledOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
         whenever(epgRepository.getResolvedProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
-        whenever(epgRepository.getProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(
-            flowOf(
-                mapOf(
-                    "one" to listOf(
-                        Program(
-                            id = 1L,
-                            channelId = "one",
-                            title = "Headline",
-                            startTime = System.currentTimeMillis() - 60_000L,
-                            endTime = System.currentTimeMillis() + 60_000L,
-                            providerId = provider.id
-                        )
-                    ),
-                    "two" to emptyList()
-                )
+        whenever(epgRepository.getProgramsForChannelsSnapshot(eq(provider.id), eq(listOf("one", "two")), any(), any())).thenReturn(
+            mapOf(
+                "one" to listOf(
+                    Program(
+                        id = 1L,
+                        channelId = "one",
+                        title = "Headline",
+                        startTime = System.currentTimeMillis() - 60_000L,
+                        endTime = System.currentTimeMillis() + 60_000L,
+                        providerId = provider.id
+                    )
+                ),
+                "two" to emptyList()
             )
         )
 
@@ -181,7 +180,7 @@ class EpgViewModelTest {
 
         assertThat(viewModel.uiState.value.programsByChannel.keys).containsExactly("one", "two")
         verify(epgRepository, atLeastOnce()).getResolvedProgramsForChannels(eq(provider.id), eq(listOf(1L, 2L)), any(), any())
-        verify(epgRepository, atLeastOnce()).getProgramsForChannels(eq(provider.id), eq(listOf("one", "two")), any(), any())
+        verify(epgRepository, atLeastOnce()).getProgramsForChannelsSnapshot(eq(provider.id), eq(listOf("one", "two")), any(), any())
         verify(epgRepository, never()).getProgramsForChannel(any(), any(), any(), any())
     }
 
@@ -215,28 +214,26 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideScheduledOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
         whenever(epgRepository.getResolvedProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
-        whenever(epgRepository.getProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(
-            flowOf(
-                mapOf(
-                    "one" to listOf(
-                        Program(
-                            id = 1L,
-                            channelId = "one",
-                            title = "Headline",
-                            startTime = System.currentTimeMillis() - 60_000L,
-                            endTime = System.currentTimeMillis() + 60_000L,
-                            providerId = provider.id
-                        )
-                    ),
-                    "two" to listOf(
-                        Program(
-                            id = 2L,
-                            channelId = "two",
-                            title = "Weather",
-                            startTime = System.currentTimeMillis() - 60_000L,
-                            endTime = System.currentTimeMillis() + 60_000L,
-                            providerId = provider.id
-                        )
+        whenever(epgRepository.getProgramsForChannelsSnapshot(eq(provider.id), eq(listOf("one", "two")), any(), any())).thenReturn(
+            mapOf(
+                "one" to listOf(
+                    Program(
+                        id = 1L,
+                        channelId = "one",
+                        title = "Headline",
+                        startTime = System.currentTimeMillis() - 60_000L,
+                        endTime = System.currentTimeMillis() + 60_000L,
+                        providerId = provider.id
+                    )
+                ),
+                "two" to listOf(
+                    Program(
+                        id = 2L,
+                        channelId = "two",
+                        title = "Weather",
+                        startTime = System.currentTimeMillis() - 60_000L,
+                        endTime = System.currentTimeMillis() + 60_000L,
+                        providerId = provider.id
                     )
                 )
             )
@@ -311,7 +308,7 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideScheduledOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
         whenever(epgRepository.getResolvedProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
-        whenever(epgRepository.getProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(flowOf(emptyMap()))
+        whenever(epgRepository.getProgramsForChannelsSnapshot(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
 
         val viewModel = EpgViewModel(
             providerRepository = providerRepository,
@@ -363,7 +360,7 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
         whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(com.streamvault.domain.model.VirtualCategoryIds.FAVORITES))
         whenever(epgRepository.getResolvedProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
-        whenever(epgRepository.getProgramsForChannels(eq(provider.id), any(), any(), any())).thenReturn(flowOf(emptyMap()))
+        whenever(epgRepository.getProgramsForChannelsSnapshot(eq(provider.id), any(), any(), any())).thenReturn(emptyMap())
 
         val viewModel = EpgViewModel(
             providerRepository = providerRepository,
@@ -456,8 +453,8 @@ class EpgViewModelTest {
         whenever(preferencesRepository.guideScheduledOnly).thenReturn(flowOf(false))
         whenever(preferencesRepository.guideAnchorTime).thenReturn(flowOf(null))
         whenever(preferencesRepository.guideDefaultCategoryId).thenReturn(flowOf(com.streamvault.domain.model.VirtualCategoryIds.FAVORITES))
-        whenever(epgRepository.getResolvedProgramsForChannels(eq(0L), any(), any(), any())).thenReturn(emptyMap())
-        whenever(epgRepository.getProgramsForChannels(eq(0L), any(), any(), any())).thenReturn(flowOf(emptyMap()))
+        whenever(epgRepository.getResolvedProgramsForChannels(any(), any(), any(), any())).thenReturn(emptyMap())
+        whenever(epgRepository.getProgramsForChannelsSnapshot(any(), any(), any(), any())).thenReturn(emptyMap())
 
         val viewModel = createViewModel()
 
