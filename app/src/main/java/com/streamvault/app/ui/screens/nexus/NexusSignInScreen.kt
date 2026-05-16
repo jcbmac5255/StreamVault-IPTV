@@ -313,8 +313,11 @@ private fun SignInLoadingContent(syncProgress: SyncProgress?) {
         textAlign = TextAlign.Center
     )
 
-    val phaseText = syncProgress?.currentLabel?.takeIf { it.isNotBlank() }
-        ?: stringResource(R.string.nexus_sign_in_loading_connecting)
+    val phaseText = if (syncProgress != null) {
+        stringResource(sectionPhaseLabelRes(syncProgress.section))
+    } else {
+        stringResource(R.string.nexus_sign_in_loading_connecting)
+    }
     Text(
         text = phaseText,
         style = MaterialTheme.typography.bodyMedium,
@@ -377,4 +380,10 @@ private fun sectionLabelRes(section: Section): Int = when (section) {
     Section.LIVE -> R.string.sync_section_live
     Section.VOD -> R.string.sync_section_vod
     Section.SERIES -> R.string.sync_section_series
+}
+
+private fun sectionPhaseLabelRes(section: Section): Int = when (section) {
+    Section.LIVE -> R.string.nexus_sign_in_loading_indexing_live
+    Section.VOD -> R.string.nexus_sign_in_loading_indexing_vod
+    Section.SERIES -> R.string.nexus_sign_in_loading_indexing_series
 }

@@ -560,6 +560,9 @@
     <string name="nexus_sign_in_loading_connecting">Verifying your credentials…</string>
     <string name="nexus_sign_in_loading_subtitle_syncing">Loading your channels, movies, and shows. This can take a moment on the first sign-in.</string>
     <string name="nexus_sign_in_loading_dont_close">Keep this screen open until it\'s done.</string>
+    <string name="nexus_sign_in_loading_indexing_live">Indexing channels</string>
+    <string name="nexus_sign_in_loading_indexing_vod">Indexing movies</string>
+    <string name="nexus_sign_in_loading_indexing_series">Indexing series</string>
     <string name="settings_updates_title">Updates</string>
     <string name="settings_updates_subtitle">Check GitHub Releases for newer Nexus versions without leaving the app.</string>
     <string name="settings_update_auto_check">Automatically check for updates</string>
