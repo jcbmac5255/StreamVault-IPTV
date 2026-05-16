@@ -556,6 +556,10 @@
     <string name="nexus_sign_in_use_custom_provider">Add a custom provider</string>
     <string name="nexus_sign_in_error_blank">Enter both username and password.</string>
     <string name="nexus_sign_in_error_credentials">Sign-in failed. Check your username and password, then try again.</string>
+    <string name="nexus_sign_in_loading_title">Signing you in</string>
+    <string name="nexus_sign_in_loading_connecting">Verifying your credentials…</string>
+    <string name="nexus_sign_in_loading_subtitle_syncing">Loading your channels, movies, and shows. This can take a moment on the first sign-in.</string>
+    <string name="nexus_sign_in_loading_dont_close">Keep this screen open until it\'s done.</string>
     <string name="settings_updates_title">Updates</string>
     <string name="settings_updates_subtitle">Check GitHub Releases for newer Nexus versions without leaving the app.</string>
     <string name="settings_update_auto_check">Automatically check for updates</string>
