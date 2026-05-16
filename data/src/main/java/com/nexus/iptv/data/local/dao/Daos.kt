@@ -2916,6 +2916,9 @@ interface ProgramDao {
     @Query("SELECT COUNT(*) FROM programs WHERE provider_id = :providerId")
     suspend fun countByProvider(providerId: Long): Int
 
+    @Query("SELECT COUNT(*) FROM programs WHERE provider_id = :providerId")
+    fun observeCountByProvider(providerId: Long): Flow<Int>
+
     @Query("DELETE FROM programs WHERE end_time < :beforeTime")
     suspend fun deleteOld(beforeTime: Long): Int
 

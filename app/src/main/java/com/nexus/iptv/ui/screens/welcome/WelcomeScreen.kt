@@ -324,10 +324,12 @@ private fun sectionColor(section: Section): Color = when (section) {
     Section.LIVE -> AppColors.Brand
     Section.VOD -> AppColors.Success
     Section.SERIES -> AppColors.Warning
+    Section.EPG -> AppColors.BrandStrong
 }
 
 private fun sectionLabelRes(section: Section): Int = when (section) {
     Section.LIVE -> R.string.sync_section_live
     Section.VOD -> R.string.sync_section_vod
     Section.SERIES -> R.string.sync_section_series
+    Section.EPG -> R.string.sync_section_epg
 }

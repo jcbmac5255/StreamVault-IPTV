@@ -45,6 +45,7 @@ import com.nexus.iptv.ui.components.shell.StatusPill
 import com.nexus.iptv.ui.design.AppColors
 import com.nexus.iptv.ui.interaction.TvButton
 import com.nexus.iptv.ui.theme.ErrorColor
+import com.nexus.iptv.data.local.dao.ProgramDao
 import com.nexus.iptv.data.local.dao.XtreamIndexJobDao
 import com.nexus.iptv.data.sync.SyncProgressBus
 import com.nexus.iptv.domain.sync.Section
@@ -62,6 +63,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
@@ -92,6 +94,7 @@ data class NexusSignInUiState(
 class NexusSignInViewModel @Inject constructor(
     private val validateAndAddProvider: ValidateAndAddProvider,
     private val xtreamIndexJobDao: XtreamIndexJobDao,
+    private val programDao: ProgramDao,
     syncProgressBus: SyncProgressBus
 ) : ViewModel() {
 
@@ -197,6 +200,16 @@ class NexusSignInViewModel @Inject constructor(
         pinPhaseToHundredPercent(SECTION_SERIES, Section.SERIES, deepIndexFlow)
         delay(PHASE_COMPLETE_HOLD_MS)
 
+        // Phase 3: EPG. The EPG job row only writes indexedRows at SUCCESS,
+        // so we observe programDao.observeCountByProvider for real-time
+        // progress while waiting on the BackgroundEpgSyncWorker. The bar is
+        // driven by an asymptotic estimate (current/total grows with the
+        // count but never quite hits 100% until the job goes terminal, at
+        // which point we pin to the final count).
+        awaitEpgDone(providerId, deepIndexFlow)
+        pinEpgToFinal(providerId, deepIndexFlow)
+        delay(PHASE_COMPLETE_HOLD_MS)
+
         _uiState.update {
             it.copy(
                 isLoading = false,
@@ -250,6 +263,77 @@ class NexusSignInViewModel @Inject constructor(
         }
     }
 
+    private suspend fun awaitEpgDone(
+        providerId: Long,
+        deepIndexFlow: kotlinx.coroutines.flow.Flow<List<com.nexus.iptv.data.local.entity.XtreamIndexJobEntity>>
+    ) {
+        // EPG sync downloads & parses XMLTV before the first DB flush, so the
+        // program count stays at 0 for ~20-30 seconds and then jumps. Layer a
+        // time-based asymptote over the count-based asymptote and take the
+        // max — bar moves immediately from elapsed time, then accelerates
+        // once real programs start arriving.
+        val phaseStartedAt = System.currentTimeMillis()
+        // Drive a periodic tick so the time-based progress can advance even
+        // when the dao flows aren't emitting.
+        val tickFlow = flow {
+            while (true) {
+                emit(Unit)
+                delay(500)
+            }
+        }
+        withTimeoutOrNull(DEEP_INDEX_TIMEOUT_MS) {
+            combine(
+                deepIndexFlow,
+                programDao.observeCountByProvider(providerId),
+                tickFlow
+            ) { jobs, programCount, _ -> Pair(jobs, programCount) }
+                .onEach { (jobs, programCount) ->
+                    val elapsedSec = (System.currentTimeMillis() - phaseStartedAt) / 1000.0
+                    val timeFraction = elapsedSec / (elapsedSec + 30.0)
+                    val countOffset = (programCount / 4).coerceAtLeast(2000)
+                    val countFraction = if (programCount > 0) {
+                        programCount.toDouble() / (programCount + countOffset)
+                    } else 0.0
+                    val effective = maxOf(timeFraction, countFraction).coerceAtMost(0.99)
+                    val barScale = 10_000
+                    // While the XMLTV parser is downloading/parsing, the real
+                    // program count stays at 0 even though work is happening.
+                    // Synthesize a time-based count (~1k/sec) so the items
+                    // line moves immediately; once the real count overtakes
+                    // it takes over via maxOf.
+                    val syntheticCount = (elapsedSec * 1000).toInt()
+                    val itemsForDisplay = maxOf(programCount, syntheticCount)
+                    _uiState.update {
+                        it.copy(
+                            deepIndexPhase = Section.EPG,
+                            deepIndexedRows = itemsForDisplay,
+                            deepIndexCompletedCategories = (effective * barScale).toInt(),
+                            deepIndexTotalCategories = barScale
+                        )
+                    }
+                }
+                .first { (jobs, _) ->
+                    val epgJob = jobs.firstOrNull { it.section.equals(SECTION_EPG, ignoreCase = true) }
+                    epgJob == null || epgJob.state.uppercase() in TERMINAL_STATES
+                }
+        }
+    }
+
+    private suspend fun pinEpgToFinal(
+        providerId: Long,
+        deepIndexFlow: kotlinx.coroutines.flow.Flow<List<com.nexus.iptv.data.local.entity.XtreamIndexJobEntity>>
+    ) {
+        val finalCount = programDao.countByProvider(providerId)
+        _uiState.update {
+            it.copy(
+                deepIndexPhase = Section.EPG,
+                deepIndexedRows = finalCount,
+                deepIndexCompletedCategories = finalCount,
+                deepIndexTotalCategories = finalCount
+            )
+        }
+    }
+
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
@@ -257,6 +341,7 @@ class NexusSignInViewModel @Inject constructor(
     private companion object {
         const val SECTION_MOVIE = "MOVIE"
         const val SECTION_SERIES = "SERIES"
+        const val SECTION_EPG = "EPG"
         val TERMINAL_STATES = setOf("SUCCESS", "PARTIAL", "FAILED_RETRYABLE", "FAILED_PERMANENT")
         const val DEEP_INDEX_TIMEOUT_MS = 5L * 60_000L
         const val PHASE_COMPLETE_HOLD_MS = 1_500L
@@ -502,7 +587,10 @@ private fun SignInLoadingContent(syncProgress: SyncProgress?) {
             style = MaterialTheme.typography.labelLarge,
             color = AppColors.TextSecondary
         )
-        if (syncProgress.total > 0) {
+        // EPG only has a 1-category total (the BackgroundEpgSyncWorker writes
+        // it as a single bucket), so the "X / Y categories" subline isn't
+        // informative for that phase — hide it.
+        if (syncProgress.total > 0 && syncProgress.section != Section.EPG) {
             Text(
                 text = stringResource(
                     R.string.nexus_sign_in_progress_count_format,
@@ -555,16 +643,19 @@ private fun sectionColor(section: Section): Color = when (section) {
     Section.LIVE -> AppColors.Brand
     Section.VOD -> AppColors.Success
     Section.SERIES -> AppColors.Warning
+    Section.EPG -> AppColors.BrandStrong
 }
 
 private fun sectionLabelRes(section: Section): Int = when (section) {
     Section.LIVE -> R.string.sync_section_live
     Section.VOD -> R.string.sync_section_vod
     Section.SERIES -> R.string.sync_section_series
+    Section.EPG -> R.string.sync_section_epg
 }
 
 private fun sectionPhaseLabelRes(section: Section): Int = when (section) {
     Section.LIVE -> R.string.nexus_sign_in_loading_indexing_live
     Section.VOD -> R.string.nexus_sign_in_loading_indexing_vod
     Section.SERIES -> R.string.nexus_sign_in_loading_indexing_series
+    Section.EPG -> R.string.nexus_sign_in_loading_indexing_epg
 }

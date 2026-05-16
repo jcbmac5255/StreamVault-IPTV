@@ -26,10 +26,15 @@ data class SyncProgress(
 
 /**
  * Section du catalogue en cours de synchronisation. L'ordre déclaré reflète la séquence
- * d'exécution du sync (LIVE puis VOD puis SERIES).
+ * d'exécution du sync (LIVE puis VOD puis SERIES puis EPG).
+ *
+ * Note: the data-layer SyncProgressBus only emits LIVE/VOD/SERIES. EPG is a synthesized
+ * phase emitted from the Nexus sign-in screen while it waits on the
+ * BackgroundEpgSyncWorker via the xtream_index_jobs row.
  */
 enum class Section {
     LIVE,
     VOD,
-    SERIES
+    SERIES,
+    EPG
 }
