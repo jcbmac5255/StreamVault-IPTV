@@ -110,11 +110,16 @@ class NexusSignInViewModel @Inject constructor(
         .scan(Pair<SyncProgress?, SyncProgress?>(null, null)) { acc, current -> Pair(acc.second, current) }
         .transform { (previous, current) ->
             if (previous?.section == Section.LIVE && current != null && current.section != Section.LIVE) {
+                // Pin the bar to its category-based total (not itemsIndexed,
+                // which is the channel count and would briefly render the
+                // categories line as "16XXX / 16XXX"). Fall back to whatever
+                // current value we had if total was never populated.
+                val pinTo = if (previous.total > 0) previous.total else previous.current.coerceAtLeast(1)
                 emit(
                     SyncProgress(
                         section = Section.LIVE,
-                        current = previous.itemsIndexed,
-                        total = previous.itemsIndexed,
+                        current = pinTo,
+                        total = pinTo,
                         currentLabel = "",
                         itemsIndexed = previous.itemsIndexed
                     )
@@ -582,8 +587,14 @@ private fun SignInLoadingContent(syncProgress: SyncProgress?) {
     }
 
     if (syncProgress != null) {
+        val indexedFormatRes = when (syncProgress.section) {
+            Section.LIVE -> R.string.sync_channels_indexed_format
+            Section.VOD -> R.string.sync_movies_indexed_format
+            Section.SERIES -> R.string.sync_series_indexed_format
+            Section.EPG -> R.string.sync_programs_indexed_format
+        }
         Text(
-            text = stringResource(R.string.sync_items_indexed_format, syncProgress.itemsIndexed),
+            text = stringResource(indexedFormatRes, syncProgress.itemsIndexed),
             style = MaterialTheme.typography.labelLarge,
             color = AppColors.TextSecondary
         )

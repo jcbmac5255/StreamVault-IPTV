@@ -24,6 +24,10 @@
     <string name="sync_section_series">Series</string>
     <string name="sync_section_epg">EPG</string>
     <string name="sync_items_indexed_format">%1$d items indexed</string>
+    <string name="sync_channels_indexed_format">%1$d channels indexed</string>
+    <string name="sync_movies_indexed_format">%1$d movies indexed</string>
+    <string name="sync_series_indexed_format">%1$d series indexed</string>
+    <string name="sync_programs_indexed_format">%1$d programs indexed</string>
     <string name="welcome_tagline">Premium IPTV for the living room</string>
     <string name="welcome_subtitle">Lean back into live channels, catch-up viewing, movies, and series with a first-party Android TV experience.</string>
     <string name="welcome_feature_live">Fast live browsing with remote-first focus</string>
