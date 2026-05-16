@@ -18,8 +18,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -286,6 +289,8 @@ private fun WelcomeStartCard(
                 color = AppColors.TextSecondary,
                 textAlign = TextAlign.Center
             )
+            val signInFocusRequester = remember { FocusRequester() }
+            LaunchedEffect(Unit) { signInFocusRequester.requestFocus() }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -293,7 +298,9 @@ private fun WelcomeStartCard(
             ) {
                 TvButton(
                     onClick = onNavigateToSetup,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(signInFocusRequester)
                 ) {
                     Text(text = stringResource(R.string.welcome_setup_provider))
                 }

@@ -188,7 +188,7 @@ fun NexusSignInScreen(
                         if (uiState.errorMessage != null) viewModel.clearError()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.nexus_sign_in_username_hint)) },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.nexus_sign_in_username_hint)) },
                     singleLine = true,
                     enabled = !uiState.isLoading,
                     colors = fieldColors
@@ -200,7 +200,7 @@ fun NexusSignInScreen(
                         if (uiState.errorMessage != null) viewModel.clearError()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.nexus_sign_in_password_hint)) },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.nexus_sign_in_password_hint)) },
                     singleLine = true,
                     enabled = !uiState.isLoading,
                     visualTransformation = PasswordVisualTransformation(),
