@@ -408,11 +408,11 @@
     <string name="settings_enabled">사용</string>
     <string name="settings_disabled">사용 안 함</string>
     <string name="settings_developed_by">개발</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">Jake McClanahan</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">Ko-fi로 후원</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/jcbmac5255/StreamVault-IPTV</string>
+    <string name="settings_donate">Support on Cash App</string>
+    <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_updates_title">업데이트</string>
     <string name="settings_updates_subtitle">앱을 종료하지 않고 GitHub 릴리스에서 최신 Nexus 버전을 확인하세요.</string>
     <string name="settings_update_auto_check">업데이트 자동 확인</string>

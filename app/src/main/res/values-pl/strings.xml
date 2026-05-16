@@ -408,11 +408,11 @@
     <string name="settings_enabled">Włączone</string>
     <string name="settings_disabled">Wyłączone</string>
     <string name="settings_developed_by">Opracowany przez</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">Jake McClanahan</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">Wsparcie dla Ko-fi</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/jcbmac5255/StreamVault-IPTV</string>
+    <string name="settings_donate">Support on Cash App</string>
+    <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_updates_title">Aktualizacje</string>
     <string name="settings_updates_subtitle">Sprawdzaj nowsze wersje Nexus w GitHub Releases bez wychodzenia z aplikacji.</string>
     <string name="settings_update_auto_check">Automatycznie sprawdzaj aktualizacje</string>

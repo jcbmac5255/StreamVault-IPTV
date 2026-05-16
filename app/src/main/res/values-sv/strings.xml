@@ -408,11 +408,11 @@
     <string name="settings_enabled">Aktiverad</string>
     <string name="settings_disabled">Inaktiverad</string>
     <string name="settings_developed_by">Utvecklad av</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">Jake McClanahan</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">Support på Ko-fi</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/jcbmac5255/StreamVault-IPTV</string>
+    <string name="settings_donate">Support on Cash App</string>
+    <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_updates_title">Uppdateringar</string>
     <string name="settings_updates_subtitle">Kontrollera GitHub Releases efter nyare Nexus-versioner utan att lämna appen.</string>
     <string name="settings_update_auto_check">Sök efter uppdateringar automatiskt</string>

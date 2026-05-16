@@ -408,11 +408,11 @@
     <string name="settings_enabled">Engedélyezve</string>
     <string name="settings_disabled">Letiltva</string>
     <string name="settings_developed_by">által kifejlesztett</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">Jake McClanahan</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">Támogatás a Ko-fi-n</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/jcbmac5255/StreamVault-IPTV</string>
+    <string name="settings_donate">Support on Cash App</string>
+    <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_updates_title">Frissítések</string>
     <string name="settings_updates_subtitle">Ellenőrizze a GitHub Releases oldalon az újabb Nexus verziókat az alkalmazás elhagyása nélkül.</string>
     <string name="settings_update_auto_check">Frissítések automatikus keresése</string>

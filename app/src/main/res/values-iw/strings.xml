@@ -408,11 +408,11 @@
     <string name="settings_enabled">מופעל</string>
     <string name="settings_disabled">מושבת</string>
     <string name="settings_developed_by">פותח על ידי</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">Jake McClanahan</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">תמיכה ב-Ko-Fi</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/jcbmac5255/StreamVault-IPTV</string>
+    <string name="settings_donate">Support on Cash App</string>
+    <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_updates_title">עדכונים</string>
     <string name="settings_updates_subtitle">בדקו את GitHub Releases לגרסאות חדשות יותר של Nexus בלי לצאת מהאפליקציה.</string>
     <string name="settings_update_auto_check">בדיקה אוטומטית לעדכונים</string>

@@ -408,11 +408,11 @@
     <string name="settings_enabled">Ενεργό</string>
     <string name="settings_disabled">Ανενεργό</string>
     <string name="settings_developed_by">Αναπτύχθηκε από</string>
-    <string name="settings_developer_name">David Nashash</string>
+    <string name="settings_developer_name">Jake McClanahan</string>
     <string name="settings_github">GitHub</string>
-    <string name="settings_github_url">https://github.com/Davidona</string>
-    <string name="settings_donate">Υποστήριξη στο Ko-fi</string>
-    <string name="settings_donate_url">https://ko-fi.com/davidona</string>
+    <string name="settings_github_url">https://github.com/jcbmac5255/StreamVault-IPTV</string>
+    <string name="settings_donate">Support on Cash App</string>
+    <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_updates_title">Ενημερώσεις</string>
     <string name="settings_updates_subtitle">Ελέγξτε τα GitHub Releases για νεότερες εκδόσεις του Nexus χωρίς να φύγετε από την εφαρμογή.</string>
     <string name="settings_update_auto_check">Αυτόματος έλεγχος για ενημερώσεις</string>

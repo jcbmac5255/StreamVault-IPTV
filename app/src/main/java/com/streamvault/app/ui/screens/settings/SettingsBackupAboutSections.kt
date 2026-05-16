@@ -375,5 +375,10 @@ internal fun LazyListScope.settingsAboutSection(
             value = stringResource(R.string.settings_donate_url),
             onClick = { onOpenUri(context.getString(R.string.settings_donate_url)) }
         )
+        ClickableSettingsRow(
+            label = stringResource(R.string.settings_donate_venmo),
+            value = stringResource(R.string.settings_donate_venmo_url),
+            onClick = { onOpenUri(context.getString(R.string.settings_donate_venmo_url)) }
+        )
     }
 }
