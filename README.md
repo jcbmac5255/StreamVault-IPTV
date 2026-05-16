@@ -1,7 +1,7 @@
 # Nexus IPTV
 
 <p align="center">
-  <a href="https://github.com/jcbmac5255/Nexus-IPTV/releases/latest/download/StreamVault.apk"><img src="https://img.shields.io/badge/Download-Nexus.apk-2ea44f?style=for-the-badge&logo=android" alt="Download Nexus APK" /></a>
+  <a href="https://github.com/jcbmac5255/Nexus-IPTV/releases/latest/download/Nexus.apk"><img src="https://img.shields.io/badge/Download-Nexus.apk-2ea44f?style=for-the-badge&logo=android" alt="Download Nexus APK" /></a>
   <a href="https://github.com/jcbmac5255/Nexus-IPTV/releases/latest"><img src="https://img.shields.io/github/v/release/jcbmac5255/Nexus-IPTV?display_name=tag&style=for-the-badge&color=0f766e" alt="Latest release" /></a>
   <a href="https://cash.app/$jakem7612"><img src="https://img.shields.io/badge/Cash%20App-%24jakem7612-00C244?style=for-the-badge&logo=cashapp&logoColor=white" alt="Support on Cash App" /></a>
   <a href="https://venmo.com/u/jake7612"><img src="https://img.shields.io/badge/Venmo-%40jake7612-3D95CE?style=for-the-badge&logo=venmo&logoColor=white" alt="Support on Venmo" /></a>
@@ -13,7 +13,7 @@ Built for the living room: D-pad-first navigation, fast channel switching, and a
 
 ## Quick start
 
-1. **Download** the latest APK: [Nexus.apk](https://github.com/jcbmac5255/Nexus-IPTV/releases/latest/download/StreamVault.apk) — or grab it from your Nexus reseller's distribution link.
+1. **Download** the latest APK: [Nexus.apk](https://github.com/jcbmac5255/Nexus-IPTV/releases/latest/download/Nexus.apk) — or grab it from your Nexus reseller's distribution link.
 2. **Install** on your Android TV box (Fire TV, Shield, NVIDIA Shield, Chromecast with Google TV, etc.) by enabling "Install unknown apps" for your file manager / downloader and opening the APK.
 3. **Launch** the app — tap **Sign in to Nexus** on the welcome screen.
 4. **Enter your username and password** that your reseller sent you. That's it — the server URL is already configured.
@@ -67,7 +67,7 @@ Built for the living room: D-pad-first navigation, fast channel switching, and a
 
 Settings → About → Check for updates. New versions of Nexus are published on GitHub Releases. The app checks once per day on launch (or immediately when you tap "Check for updates") and surfaces a card on the home screen when a new version is ready.
 
-You can also wire a Nextcloud / personal distribution link to the same release flow — point it at [Nexus.apk on GitHub](https://github.com/jcbmac5255/Nexus-IPTV/releases/latest/download/StreamVault.apk) and your users always get the latest signed build.
+You can also wire a Nextcloud / personal distribution link to the same release flow — point it at [Nexus.apk on GitHub](https://github.com/jcbmac5255/Nexus-IPTV/releases/latest/download/Nexus.apk) and your users always get the latest signed build.
 
 ## Support
 
