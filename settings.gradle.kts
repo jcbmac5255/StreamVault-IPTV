@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "StreamVault"
+rootProject.name = "Nexus-IPTV"
 
 include(":app")
 include(":domain")

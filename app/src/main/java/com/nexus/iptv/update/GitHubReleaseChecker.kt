@@ -149,6 +149,12 @@ class GitHubReleaseChecker @Inject constructor(
 
     private fun findApkAssetUrl(assets: org.json.JSONArray?, updateChannel: AppUpdateChannel): String? {
         if (assets == null) return null
+        // Track an exact-match for the preferred (Nexus) name and one legacy
+        // (StreamVault) name separately so the rebranded name always wins when
+        // both are uploaded to the same release. Any other .apk asset is the
+        // last-resort fallback.
+        var preferred: String? = null
+        var legacy: String? = null
         var fallback: String? = null
         for (index in 0 until assets.length()) {
             val asset = assets.optJSONObject(index) ?: continue
@@ -157,10 +163,11 @@ class GitHubReleaseChecker @Inject constructor(
             if (!isHttpsUrl(url)) continue
             when (updateChannel) {
                 AppUpdateChannel.Stable -> {
-                    if (name.equals("StreamVault.apk", ignoreCase = true)) {
-                        return url
-                    }
-                    if (fallback == null &&
+                    if (name.equals("Nexus.apk", ignoreCase = true)) {
+                        preferred = url
+                    } else if (name.equals("StreamVault.apk", ignoreCase = true)) {
+                        legacy = url
+                    } else if (fallback == null &&
                         name.endsWith(".apk", ignoreCase = true) &&
                         !name.contains("beta", ignoreCase = true)
                     ) {
@@ -168,10 +175,11 @@ class GitHubReleaseChecker @Inject constructor(
                     }
                 }
                 AppUpdateChannel.Beta -> {
-                    if (name.equals("StreamVault-beta.apk", ignoreCase = true)) {
-                        return url
-                    }
-                    if (fallback == null &&
+                    if (name.equals("Nexus-beta.apk", ignoreCase = true)) {
+                        preferred = url
+                    } else if (name.equals("StreamVault-beta.apk", ignoreCase = true)) {
+                        legacy = url
+                    } else if (fallback == null &&
                         name.endsWith(".apk", ignoreCase = true) &&
                         name.contains("beta", ignoreCase = true)
                     ) {
@@ -180,7 +188,7 @@ class GitHubReleaseChecker @Inject constructor(
                 }
             }
         }
-        return fallback
+        return preferred ?: legacy ?: fallback
     }
 
     private fun parseTagVersionInfo(rawTagName: String): ParsedTagVersion {
