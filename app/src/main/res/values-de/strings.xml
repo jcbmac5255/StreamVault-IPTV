@@ -9,7 +9,7 @@
     <string name="nav_settings">Einstellungen</string>
     <string name="welcome_enter_app">Geben Sie App ein</string>
     <string name="welcome_manage_providers">Anbieter verwalten</string>
-    <string name="welcome_setup_provider">Setup-Anbieter</string>
+    <string name="welcome_setup_provider">Sign in to Nexus</string>
     <string name="welcome_version">v1.0.3</string>
     <string name="welcome_loading_title">Vorbereiten Ihrer Bibliothek</string>
     

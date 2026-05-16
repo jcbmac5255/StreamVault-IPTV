@@ -24,6 +24,7 @@ import com.streamvault.app.ui.screens.dashboard.DashboardScreen
 import com.streamvault.app.ui.screens.multiview.MultiViewScreen
 import com.streamvault.app.ui.screens.home.HomeScreen
 import com.streamvault.app.ui.screens.movies.MoviesScreen
+import com.streamvault.app.ui.screens.nexus.NexusSignInScreen
 import com.streamvault.app.ui.screens.player.PlayerScreen
 import com.streamvault.app.ui.screens.plugins.PluginsScreen
 import com.streamvault.app.ui.screens.provider.ProviderSetupScreen
@@ -78,6 +79,7 @@ object Routes {
     const val MOVIE_DETAIL = "movie_detail/{movieId}?returnRoute={returnRoute}"
     const val SERIES_DETAIL = "series_detail/{seriesId}?returnRoute={returnRoute}"
     const val WELCOME = "welcome"
+    const val NEXUS_SIGN_IN = "nexus_sign_in"
     const val PARENTAL_CONTROL_GROUPS = "parental_control_groups/{providerId}"
     const val MULTI_VIEW = "multi_view"
 
@@ -325,8 +327,23 @@ fun AppNavigation(mainActivity: MainActivity) {
                     }
                 },
                 onNavigateToSetup = dropUnlessResumed {
-                    navController.navigate(Routes.providerSetup()) {
+                    navController.navigate(Routes.NEXUS_SIGN_IN) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Routes.NEXUS_SIGN_IN) {
+            NexusSignInScreen(
+                onSignInComplete = dropUnlessResumed {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.NEXUS_SIGN_IN) { inclusive = true }
+                    }
+                },
+                onAddCustomProvider = dropUnlessResumed {
+                    navController.navigate(Routes.providerSetup()) {
+                        popUpTo(Routes.NEXUS_SIGN_IN) { inclusive = true }
                     }
                 }
             )
@@ -359,7 +376,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             DashboardScreen(
                 onNavigate = { route -> tabNavigate(route) },
                 onAddProvider = dropUnlessResumed {
-                    navController.navigate(Routes.providerSetup(null))
+                    navController.navigate(Routes.NEXUS_SIGN_IN)
                 },
                 onRecentChannelClick = { channel, combinedProfileId ->
                     navController.navigateToPlayer(
@@ -557,7 +574,7 @@ fun AppNavigation(mainActivity: MainActivity) {
             SettingsScreen(
                 onNavigate = { route -> tabNavigate(route) },
                 onAddProvider = dropUnlessResumed {
-                    navController.navigate(Routes.providerSetup(null))
+                    navController.navigate(Routes.NEXUS_SIGN_IN)
                 },
                 onEditProvider = { provider ->
                     navController.navigateIfResumed(Routes.providerSetup(provider.id))

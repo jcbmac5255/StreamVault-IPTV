@@ -14,7 +14,7 @@
     
     <string name="welcome_enter_app">Enter App</string>
     <string name="welcome_manage_providers">Manage Providers</string>
-    <string name="welcome_setup_provider">Setup Provider</string>
+    <string name="welcome_setup_provider">Sign in to Nexus</string>
     <string name="welcome_setup_later">Set up later</string>
     <string name="welcome_version">v1.0.3</string>
     <string name="welcome_loading_title">Preparing your library</string>
@@ -546,6 +546,16 @@
     <string name="settings_donate_url">https://cash.app/$jakem7612</string>
     <string name="settings_donate_venmo">Support on Venmo</string>
     <string name="settings_donate_venmo_url">https://venmo.com/u/jake7612</string>
+    <string name="nexus_sign_in_title">Sign in to Nexus</string>
+    <string name="nexus_sign_in_subtitle">Enter the credentials provided by your reseller.</string>
+    <string name="nexus_sign_in_username_hint">Username</string>
+    <string name="nexus_sign_in_password_hint">Password</string>
+    <string name="nexus_sign_in_button">Sign in</string>
+    <string name="nexus_sign_in_signing_in">Signing in…</string>
+    <string name="nexus_sign_in_support_hint">Contact your reseller if you don\'t have credentials.</string>
+    <string name="nexus_sign_in_use_custom_provider">Add a custom provider</string>
+    <string name="nexus_sign_in_error_blank">Enter both username and password.</string>
+    <string name="nexus_sign_in_error_credentials">Sign-in failed. Check your username and password, then try again.</string>
     <string name="settings_updates_title">Updates</string>
     <string name="settings_updates_subtitle">Check GitHub Releases for newer Nexus versions without leaving the app.</string>
     <string name="settings_update_auto_check">Automatically check for updates</string>
