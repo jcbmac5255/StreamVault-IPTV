@@ -181,7 +181,8 @@ fun DashboardScreen(
                     item(key = "announcements") {
                         AnnouncementBannerRow(
                             announcements = uiState.announcements,
-                            onAnnouncementClick = { openedAnnouncement = it }
+                            onAnnouncementClick = { openedAnnouncement = it },
+                            onDismissAnnouncement = { viewModel.dismissAnnouncement(it.id) }
                         )
                     }
                 }

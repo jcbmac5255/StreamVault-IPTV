@@ -57,8 +57,8 @@ android {
         applicationId = "com.nexus.iptv"
         minSdk = 27
         targetSdk = 36
-        versionCode = 20
-        versionName = "1.1.4"
+        versionCode = 21
+        versionName = "1.1.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OFFICIAL_APPLICATION_ID", "\"com.nexus.iptv\"")
         buildConfigField("String", "OFFICIAL_SIGNING_CERT_SHA256", "\"$officialSigningCertSha256\"")

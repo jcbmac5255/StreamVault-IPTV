@@ -2,7 +2,14 @@
 
 All notable product changes are recorded in this document.
 
-## [1.1.4] - 2026-05-17
+## [1.1.5] - 2026-05-17
+
+### Changed
+
+- Compacted the Dashboard announcement banner: removed the image preview,
+  reduced the card height, and added a focusable "Don't show again" pill
+  button to the right of each announcement so users can dismiss without
+  opening the detail dialog.
 
 ### Fixed
 
