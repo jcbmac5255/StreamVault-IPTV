@@ -457,6 +457,10 @@ fun AppNavigation(mainActivity: MainActivity) {
             )
         }
 
+        // Routes.LIVE_TV redirects to the Guide/EPG screen. The standalone Live TV channel
+        // grid is gone; the Guide page (with its inline preview window) now serves as the
+        // single Live TV surface. Keeping this destination registered so existing shortcuts
+        // and deep links that target Routes.liveTv(categoryId) still land on the right place.
         composable(
             route = Routes.LIVE_TV_DESTINATION,
             arguments = listOf(
@@ -464,23 +468,46 @@ fun AppNavigation(mainActivity: MainActivity) {
             )
         ) { backStackEntry ->
             val initialCategoryId = backStackEntry.arguments?.getLong("categoryId")?.takeIf { it != -1L }
-            HomeScreen(
-                onChannelClick = { channel, category, provider, combinedProfileId, combinedSourceFilterProviderId ->
+            com.nexus.iptv.ui.screens.epg.FullEpgScreen(
+                currentRoute = Routes.EPG,
+                initialCategoryId = initialCategoryId,
+                initialAnchorTime = null,
+                initialFavoritesOnly = false,
+                onPlayChannel = { channel, categoryId, isVirtual, combinedProfileId, returnRoute ->
                     navController.navigateToPlayer(
                         Routes.livePlayer(
                             channel = channel,
-                            categoryId = category?.id,
-                            providerId = provider?.id,
-                            isVirtual = category?.isVirtual == true,
+                            categoryId = categoryId,
+                            providerId = channel.providerId,
+                            isVirtual = isVirtual,
                             combinedProfileId = combinedProfileId,
-                            combinedSourceFilterProviderId = combinedSourceFilterProviderId,
-                            returnRoute = Routes.liveTv(category?.id)
+                            returnRoute = returnRoute
                         )
                     )
                 },
-                onNavigate = { route -> tabNavigate(route) },
-                currentRoute = Routes.LIVE_TV,
-                initialCategoryId = initialCategoryId
+                onPlayArchive = { channel, program, categoryId, isVirtual, combinedProfileId, returnRoute ->
+                    if (!channel.isArchivePlayable(program)) {
+                        return@FullEpgScreen
+                    }
+                    navController.navigateToPlayer(
+                        Routes.player(
+                            streamUrl = channel.streamUrl,
+                            title = channel.name,
+                            channelId = channel.epgChannelId,
+                            internalId = channel.id,
+                            categoryId = categoryId,
+                            providerId = channel.providerId,
+                            isVirtual = isVirtual,
+                            combinedProfileId = combinedProfileId,
+                            contentType = "LIVE",
+                            archiveStartMs = program.startTime,
+                            archiveEndMs = program.endTime,
+                            archiveTitle = "${channel.name}: ${program.title}",
+                            returnRoute = returnRoute
+                        )
+                    )
+                },
+                onNavigate = { route -> tabNavigate(route) }
             )
         }
 // ... (rest of file)

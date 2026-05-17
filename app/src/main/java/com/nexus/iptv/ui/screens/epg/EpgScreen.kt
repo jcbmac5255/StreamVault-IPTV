@@ -88,7 +88,9 @@ import androidx.tv.material3.Text
 import com.nexus.iptv.R
 import com.nexus.iptv.device.rememberIsTelevisionDevice
 import com.nexus.iptv.ui.components.ChannelLogoBadge
+import com.nexus.iptv.ui.components.PlayerRenderView
 import com.nexus.iptv.navigation.Routes
+import com.nexus.iptv.player.PlayerSurfaceResizeMode
 import com.nexus.iptv.ui.notifications.rememberNotificationPermissionGate
 import com.nexus.iptv.ui.components.SelectionChip
 import com.nexus.iptv.ui.components.SelectionChipRow
@@ -382,15 +384,30 @@ fun FullEpgScreen(
                 }
 
                 else -> {
+                    val previewChannel by viewModel.previewChannel.collectAsStateWithLifecycle()
+                    val previewEngine by viewModel.previewEngine.collectAsStateWithLifecycle()
                     GuideNowProvider {
-                        GuideHeroSection(
-                            uiState = uiState,
-                            focusedChannel = focusedChannel,
-                            focusedProgram = focusedProgram,
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 4.dp)
-                        )
+                                .padding(horizontal = 14.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            GuideHeroSection(
+                                uiState = uiState,
+                                focusedChannel = focusedChannel,
+                                focusedProgram = focusedProgram,
+                                modifier = Modifier.weight(1f)
+                            )
+                            GuidePreviewWindow(
+                                channel = previewChannel,
+                                playerEngine = previewEngine,
+                                modifier = Modifier
+                                    .width(213.dp)
+                                    .height(120.dp)
+                            )
+                        }
                     }
                     GuideToolbarRow(
                         selectedCategoryName = uiState.categories
@@ -439,13 +456,18 @@ fun FullEpgScreen(
                                 if (isGuideChannelLocked(channel, categoriesById, uiState.parentalControlLevel)) {
                                     requestLockedGuideAction(LockedGuideAction.PlayChannel(channel, returnRoute))
                                 } else {
-                                    onPlayChannel(
-                                        channel,
-                                        playerCategoryId,
-                                        playerIsVirtualCategory,
-                                        uiState.combinedProfileId,
-                                        returnRoute
-                                    )
+                                    // First click: load into the inline preview (returns true).
+                                    // Click on the already-playing preview channel: escalate to full screen.
+                                    val handled = viewModel.selectPreviewChannel(channel)
+                                    if (!handled) {
+                                        onPlayChannel(
+                                            channel,
+                                            playerCategoryId,
+                                            playerIsVirtualCategory,
+                                            uiState.combinedProfileId,
+                                            returnRoute
+                                        )
+                                    }
                                 }
                             },
                             onProgramClick = { channel, program ->

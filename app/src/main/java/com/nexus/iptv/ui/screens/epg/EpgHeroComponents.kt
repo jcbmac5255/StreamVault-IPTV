@@ -34,7 +34,10 @@ import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import com.nexus.iptv.R
 import com.nexus.iptv.ui.components.ChannelLogoBadge
+import com.nexus.iptv.ui.components.PlayerRenderView
 import com.nexus.iptv.ui.model.isArchivePlayable
+import com.nexus.iptv.player.PlayerEngine
+import com.nexus.iptv.player.PlayerSurfaceResizeMode
 import com.nexus.iptv.ui.interaction.TvClickableSurface
 import com.nexus.iptv.ui.model.guideLookupKey
 import com.nexus.iptv.ui.time.LocalAppTimeFormat
@@ -80,6 +83,49 @@ internal fun resolveGuideHeroSelection(
         program = resolvedProgram,
         isFallbackToChannel = resolvedProgram == null
     )
+}
+
+@Composable
+internal fun GuidePreviewWindow(
+    channel: com.nexus.iptv.domain.model.Channel?,
+    playerEngine: PlayerEngine?,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        colors = SurfaceDefaults.colors(containerColor = Color.Black),
+        border = Border(
+            border = BorderStroke(1.dp, SurfaceHighlight),
+            shape = RoundedCornerShape(14.dp)
+        )
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (playerEngine != null) {
+                PlayerRenderView(
+                    playerEngine = playerEngine,
+                    resizeMode = PlayerSurfaceResizeMode.FIT,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (channel != null) {
+                Text(
+                    text = stringResource(R.string.guide_preview_loading),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = OnSurfaceDim
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.guide_preview_placeholder),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = OnSurfaceDim,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable

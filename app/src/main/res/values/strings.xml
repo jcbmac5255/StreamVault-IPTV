@@ -20,7 +20,7 @@
     <string name="welcome_loading_title">Preparing your library</string>
     <string name="welcome_loading_subtitle">Opening the right screen for this device.</string>
     <string name="sync_section_live">Live</string>
-    <string name="sync_section_vod">VOD</string>
+    <string name="sync_section_vod">Movies</string>
     <string name="sync_section_series">Series</string>
     <string name="sync_section_epg">EPG</string>
     <string name="sync_items_indexed_format">%1$d items indexed</string>
@@ -112,6 +112,8 @@
     <string name="dashboard_subtitle">%1$s is active. Jump back into live, catch up on progress, or browse fresh additions.</string>
     <string name="dashboard_favorite_channels">Favorite Channels</string>
     <string name="dashboard_announcements_title">Announcements</string>
+    <string name="guide_preview_placeholder">Tap a channel to preview</string>
+    <string name="guide_preview_loading">Loading…</string>
     <string name="announcement_dialog_dismiss">Don\'t show again</string>
     <string name="announcement_dialog_close">Close</string>
     <string name="dashboard_recent_channels">Recent Channels</string>

@@ -35,7 +35,10 @@ import com.nexus.iptv.domain.usecase.ScheduleRecording
 import com.nexus.iptv.domain.usecase.ScheduleRecordingCommand
 import com.nexus.iptv.domain.util.AdultContentVisibilityPolicy
 import com.nexus.iptv.data.preferences.PreferencesRepository
+import com.nexus.iptv.di.AuxiliaryPlayerEngine
+import com.nexus.iptv.player.PlayerEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Provider
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -252,7 +255,8 @@ class EpgViewModel @Inject constructor(
     private val programReminderManager: ProgramReminderManager,
     private val getCustomCategories: GetCustomCategories,
     private val scheduleRecording: ScheduleRecording,
-    private val recordingManager: RecordingManager
+    private val recordingManager: RecordingManager,
+    @AuxiliaryPlayerEngine private val previewPlayerEngineProvider: Provider<PlayerEngine>
 ) : ViewModel() {
 
     companion object {
@@ -1800,6 +1804,79 @@ class EpgViewModel @Inject constructor(
         // OR if the user has explicitly unlocked this category
         return AdultContentVisibilityPolicy.showInAggregatedSurfaces(parentalControlLevel) ||
             unlockedCategoryIds.contains(category.id)
+    }
+
+    // --- Inline preview window for the Guide ---
+
+    private val _previewChannel = MutableStateFlow<Channel?>(null)
+    val previewChannel: StateFlow<Channel?> = _previewChannel.asStateFlow()
+
+    private val _previewEngine = MutableStateFlow<PlayerEngine?>(null)
+    val previewEngine: StateFlow<PlayerEngine?> = _previewEngine.asStateFlow()
+
+    private var previewJob: Job? = null
+
+    /**
+     * Returns true if the click was handled as a preview swap; false if the channel was already
+     * the active preview (the caller should escalate to full-screen playback in that case).
+     */
+    fun selectPreviewChannel(channel: Channel): Boolean {
+        val current = _previewChannel.value
+        if (current?.id == channel.id) return false
+
+        previewJob?.cancel()
+        releasePreviewEngine()
+
+        _previewChannel.value = channel
+        previewJob = viewModelScope.launch {
+            val engine = previewPlayerEngineProvider.get()
+            (engine as? com.nexus.iptv.player.Media3PlayerEngine)?.apply {
+                constrainResolutionForMultiView = true
+                bypassAudioFocus = false
+                enableMediaSession = false
+            }
+            try {
+                val streamInfo = when (val result = channelRepository.getStreamInfo(channel)) {
+                    is Result.Success -> result.data
+                    is Result.Error -> {
+                        engine.release()
+                        return@launch
+                    }
+                    Result.Loading -> {
+                        engine.release()
+                        return@launch
+                    }
+                }
+                engine.prepare(streamInfo)
+                engine.play()
+                _previewEngine.value = engine
+            } catch (cancellation: kotlinx.coroutines.CancellationException) {
+                engine.release()
+                throw cancellation
+            } catch (error: Exception) {
+                engine.release()
+                _previewEngine.value = null
+            }
+        }
+        return true
+    }
+
+    fun clearPreview() {
+        previewJob?.cancel()
+        previewJob = null
+        releasePreviewEngine()
+        _previewChannel.value = null
+    }
+
+    private fun releasePreviewEngine() {
+        _previewEngine.value?.let { runCatching { it.release() } }
+        _previewEngine.value = null
+    }
+
+    override fun onCleared() {
+        previewJob?.cancel()
+        releasePreviewEngine()
+        super.onCleared()
     }
 }
 
