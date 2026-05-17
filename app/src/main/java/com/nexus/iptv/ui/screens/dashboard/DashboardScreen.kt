@@ -27,6 +27,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,7 +52,9 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.nexus.iptv.R
 import com.nexus.iptv.device.rememberIsTelevisionDevice
+import com.nexus.iptv.ui.components.AnnouncementBannerRow
 import com.nexus.iptv.ui.components.ChannelLogoBadge
+import com.nexus.iptv.ui.components.dialogs.AnnouncementDialog
 import com.nexus.iptv.navigation.Routes
 import com.nexus.iptv.ui.components.CategoryRow
 import com.nexus.iptv.ui.components.ChannelCard
@@ -73,6 +77,7 @@ import com.nexus.iptv.ui.design.AppColors.TextPrimary as OnBackground
 import com.nexus.iptv.ui.design.AppColors.TextPrimary as TextPrimary
 import com.nexus.iptv.ui.design.AppColors.TextTertiary as OnSurfaceDim
 import com.nexus.iptv.ui.design.AppColors.TextTertiary as TextTertiary
+import com.nexus.iptv.domain.model.Announcement
 import com.nexus.iptv.domain.model.Channel
 import com.nexus.iptv.domain.model.Movie
 import com.nexus.iptv.domain.model.PlaybackHistory
@@ -103,6 +108,7 @@ fun DashboardScreen(
     val scheduledChannelIds by viewModel.scheduledChannelIds.collectAsStateWithLifecycle()
     val provider = uiState.provider
     val snackbarHostState = remember { SnackbarHostState() }
+    var openedAnnouncement by remember { mutableStateOf<Announcement?>(null) }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { message ->
@@ -160,6 +166,14 @@ fun DashboardScreen(
                             notice = updateNotice,
                             onOpenSettings = { onNavigate(Routes.SETTINGS) },
                             onInstallUpdate = viewModel::installDownloadedUpdate
+                        )
+                    }
+                }
+                if (uiState.announcements.isNotEmpty()) {
+                    item(key = "announcements") {
+                        AnnouncementBannerRow(
+                            announcements = uiState.announcements,
+                            onAnnouncementClick = { openedAnnouncement = it }
                         )
                     }
                 }
@@ -239,6 +253,17 @@ fun DashboardScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp)
         )
+
+        openedAnnouncement?.let { announcement ->
+            AnnouncementDialog(
+                announcement = announcement,
+                onDismissForever = {
+                    viewModel.dismissAnnouncement(announcement.id)
+                    openedAnnouncement = null
+                },
+                onDismissRequest = { openedAnnouncement = null }
+            )
+        }
     }
 }
 

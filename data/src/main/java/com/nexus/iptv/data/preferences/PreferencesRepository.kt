@@ -109,6 +109,7 @@ class PreferencesRepository @Inject constructor(
         val GUIDE_FAVORITES_ONLY = intPreferencesKey("guide_favorites_only")
         val GUIDE_ANCHOR_TIME = longPreferencesKey("guide_anchor_time")
         val PROMOTED_LIVE_GROUP_IDS = stringPreferencesKey("promoted_live_group_ids")
+        val DISMISSED_ANNOUNCEMENT_IDS = stringPreferencesKey("dismissed_announcement_ids")
         val MULTIVIEW_PRESET_1 = stringPreferencesKey("multiview_preset_1")
         val MULTIVIEW_PRESET_2 = stringPreferencesKey("multiview_preset_2")
         val MULTIVIEW_PRESET_3 = stringPreferencesKey("multiview_preset_3")
@@ -1398,6 +1399,34 @@ class PreferencesRepository @Inject constructor(
             } else {
                 preferences[PreferencesKeys.PROMOTED_LIVE_GROUP_IDS] = groupIds.sorted().joinToString(",")
             }
+        }
+    }
+
+    val dismissedAnnouncementIds: Flow<Set<String>> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.DISMISSED_ANNOUNCEMENT_IDS]
+            ?.split(',')
+            ?.filter { it.isNotBlank() }
+            ?.toSet()
+            .orEmpty()
+    }
+
+    suspend fun dismissAnnouncement(announcementId: String) {
+        if (announcementId.isBlank()) return
+        context.dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.DISMISSED_ANNOUNCEMENT_IDS]
+                ?.split(',')
+                ?.filter { it.isNotBlank() }
+                ?.toMutableSet()
+                ?: mutableSetOf()
+            if (current.add(announcementId)) {
+                preferences[PreferencesKeys.DISMISSED_ANNOUNCEMENT_IDS] = current.joinToString(",")
+            }
+        }
+    }
+
+    suspend fun clearDismissedAnnouncements() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.DISMISSED_ANNOUNCEMENT_IDS)
         }
     }
 

@@ -64,6 +64,9 @@ abstract class RepositoryModule {
     abstract fun bindExternalRatingsRepository(impl: ExternalRatingsRepositoryImpl): ExternalRatingsRepository
 
     @Binds @Singleton
+    abstract fun bindAnnouncementRepository(impl: AnnouncementRepositoryImpl): AnnouncementRepository
+
+    @Binds @Singleton
     abstract fun bindSyncMetadataRepository(impl: SyncMetadataRepositoryImpl): SyncMetadataRepository
 
     @Binds @Singleton

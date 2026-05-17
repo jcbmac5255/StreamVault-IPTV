@@ -111,6 +111,9 @@
     <string name="dashboard_title">Your Library, Ready</string>
     <string name="dashboard_subtitle">%1$s is active. Jump back into live, catch up on progress, or browse fresh additions.</string>
     <string name="dashboard_favorite_channels">Favorite Channels</string>
+    <string name="dashboard_announcements_title">Announcements</string>
+    <string name="announcement_dialog_dismiss">Don\'t show again</string>
+    <string name="announcement_dialog_close">Close</string>
     <string name="dashboard_recent_channels">Recent Channels</string>
     <string name="dashboard_recent_movies">Recently Added Movies</string>
     <string name="dashboard_recent_series">Recently Updated Series</string>

@@ -8,6 +8,8 @@ import com.nexus.iptv.data.preferences.PreferencesRepository
 import com.nexus.iptv.data.sync.SyncManager
 import com.nexus.iptv.update.AppUpdateInstaller
 import com.nexus.iptv.domain.model.ActiveLiveSource
+import com.nexus.iptv.domain.model.Announcement
+import com.nexus.iptv.domain.model.AnnouncementAudienceType
 import com.nexus.iptv.domain.model.Category
 import com.nexus.iptv.domain.model.Channel
 import com.nexus.iptv.domain.model.ContentType
@@ -20,6 +22,7 @@ import com.nexus.iptv.domain.model.ProviderType
 import com.nexus.iptv.domain.model.Series
 import com.nexus.iptv.domain.model.SyncState
 import com.nexus.iptv.domain.model.VirtualCategoryIds
+import com.nexus.iptv.domain.repository.AnnouncementRepository
 import com.nexus.iptv.domain.repository.ChannelRepository
 import com.nexus.iptv.domain.repository.CombinedM3uRepository
 import com.nexus.iptv.domain.repository.FavoriteRepository
@@ -73,7 +76,8 @@ class DashboardViewModel @Inject constructor(
     private val getCustomCategories: GetCustomCategories,
     private val syncManager: SyncManager,
     private val appUpdateInstaller: AppUpdateInstaller,
-    private val recordingManager: RecordingManager
+    private val recordingManager: RecordingManager,
+    private val announcementRepository: AnnouncementRepository
 ) : ViewModel() {
     private companion object {
         const val FAVORITE_CHANNEL_LIMIT = 12
@@ -93,7 +97,10 @@ class DashboardViewModel @Inject constructor(
     private val _scheduledChannelIds = MutableStateFlow<Set<Long>>(emptySet())
     val scheduledChannelIds: StateFlow<Set<Long>> = _scheduledChannelIds.asStateFlow()
 
+    private val _allAnnouncements = MutableStateFlow<List<Announcement>>(emptyList())
+
     init {
+        refreshAnnouncements()
         viewModelScope.launch {
             recordingManager.observeRecordingItems().collect { items ->
                 _recordingChannelIds.value = items
@@ -219,6 +226,17 @@ class DashboardViewModel @Inject constructor(
         }.combine(observeUpdateNotice().onStart { emit(null) }) { snapshot, updateNotice ->
             snapshot.copy(updateNotice = updateNotice)
         }.combine(syncManager.syncStateForProvider(provider.id).onStart { emit(SyncState.Idle) }) { snapshot, syncState ->
+            DashboardSnapshotWithSync(snapshot, syncState)
+        }.combine(
+            combine(
+                _allAnnouncements,
+                preferencesRepository.dismissedAnnouncementIds
+            ) { all, dismissed ->
+                filterVisibleAnnouncements(all, dismissed, provider.username)
+            }
+        ) { withSync, announcements ->
+            val snapshot = withSync.snapshot
+            val syncState = withSync.syncState
             DashboardUiState(
                 provider = provider,
                 favoriteChannels = snapshot.shelves.favoriteChannels,
@@ -259,9 +277,35 @@ class DashboardViewModel @Inject constructor(
                     else -> emptyList()
                 },
                 updateNotice = snapshot.updateNotice,
+                announcements = announcements,
                 isLoading = false
             )
         }
+    }
+
+    private fun filterVisibleAnnouncements(
+        all: List<Announcement>,
+        dismissed: Set<String>,
+        username: String
+    ): List<Announcement> {
+        val now = System.currentTimeMillis()
+        val normalizedUsername = username.trim().lowercase()
+        return all.asSequence()
+            .filter { it.active }
+            .filter { it.id !in dismissed }
+            .filter { (it.startsAt ?: Long.MIN_VALUE) <= now }
+            .filter { (it.expiresAt ?: Long.MAX_VALUE) > now }
+            .filter { announcement ->
+                when (announcement.audienceType) {
+                    AnnouncementAudienceType.GLOBAL -> true
+                    AnnouncementAudienceType.SPECIFIC -> {
+                        normalizedUsername.isNotEmpty() &&
+                            announcement.audienceUsernames.any { it.equals(normalizedUsername, ignoreCase = true) }
+                    }
+                }
+            }
+            .sortedWith(compareByDescending<Announcement> { it.priority }.thenByDescending { it.updatedAt })
+            .toList()
     }
 
     private fun observeFavoriteChannels(providerIds: List<Long>): Flow<List<Channel>> =
@@ -595,6 +639,23 @@ class DashboardViewModel @Inject constructor(
     fun userMessageShown() {
         _uiState.value = _uiState.value.copy(userMessage = null)
     }
+
+    fun refreshAnnouncements() {
+        viewModelScope.launch {
+            when (val result = announcementRepository.fetchAnnouncements()) {
+                is com.nexus.iptv.domain.model.Result.Success -> {
+                    _allAnnouncements.value = result.data
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    fun dismissAnnouncement(announcementId: String) {
+        viewModelScope.launch {
+            preferencesRepository.dismissAnnouncement(announcementId)
+        }
+    }
 }
 
 private data class DashboardLiveContext(
@@ -625,6 +686,11 @@ private data class DashboardSnapshot(
     val updateNotice: DashboardUpdateNotice?
 )
 
+private data class DashboardSnapshotWithSync(
+    val snapshot: DashboardSnapshot,
+    val syncState: SyncState
+)
+
 data class DashboardUiState(
     val provider: Provider? = null,
     val favoriteChannels: List<Channel> = emptyList(),
@@ -641,6 +707,7 @@ data class DashboardUiState(
     val currentCombinedProfileId: Long? = null,
     val updateNotice: DashboardUpdateNotice? = null,
     val stats: DashboardStats = DashboardStats(),
+    val announcements: List<Announcement> = emptyList(),
     val userMessage: String? = null,
     val isLoading: Boolean = true
 )
