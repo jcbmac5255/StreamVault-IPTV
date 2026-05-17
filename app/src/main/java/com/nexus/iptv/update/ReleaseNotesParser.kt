@@ -42,6 +42,25 @@ object ReleaseNotesParser {
         var currentBucket: Bucket? = null
         var seenAnyKnownHeader = false
 
+        // Buffer for the bullet currently being assembled, so wrapped lines in the
+        // source markdown (indented continuation text) join onto the previous bullet
+        // instead of appearing as their own lowercase-leading entries in the UI.
+        var pendingItem: StringBuilder? = null
+
+        fun flushPending() {
+            val sb = pendingItem ?: return
+            val text = sb.toString().trim()
+            pendingItem = null
+            if (text.isEmpty()) return
+            val capitalized = capitalizeFirstLetter(text)
+            when (currentBucket) {
+                Bucket.FEATURES -> features.add(capitalized)
+                Bucket.CHANGES -> changes.add(capitalized)
+                Bucket.FIXES -> fixes.add(capitalized)
+                null -> otherLines.add(capitalized)
+            }
+        }
+
         for (rawLine in markdown.lineSequence()) {
             val line = rawLine.trimEnd()
             if (horizontalRuleRegex.matches(line)) continue
@@ -50,27 +69,45 @@ object ReleaseNotesParser {
                 ?: boldHeaderRegex.matchEntire(line)?.groupValues?.get(1)
 
             if (headerTitle != null) {
+                flushPending()
                 currentBucket = bucketFor(headerTitle)
                 if (currentBucket != null) seenAnyKnownHeader = true
                 continue
             }
 
-            if (line.isBlank()) continue
+            if (line.isBlank()) {
+                flushPending()
+                continue
+            }
 
-            val cleaned = line.trimStart()
-                .removePrefix("- ")
-                .removePrefix("* ")
-                .removePrefix("• ")
-                .trim()
-            if (cleaned.isEmpty()) continue
+            val trimmedStart = line.trimStart()
+            val isBulletStart = trimmedStart.startsWith("- ") ||
+                trimmedStart.startsWith("* ") ||
+                trimmedStart.startsWith("• ")
+            val content = if (isBulletStart) {
+                trimmedStart
+                    .removePrefix("- ")
+                    .removePrefix("* ")
+                    .removePrefix("• ")
+                    .trim()
+            } else {
+                trimmedStart.trim()
+            }
+            if (content.isEmpty()) continue
 
-            when (currentBucket) {
-                Bucket.FEATURES -> features.add(cleaned)
-                Bucket.CHANGES -> changes.add(cleaned)
-                Bucket.FIXES -> fixes.add(cleaned)
-                null -> otherLines.add(cleaned)
+            if (isBulletStart) {
+                flushPending()
+                pendingItem = StringBuilder(content)
+            } else {
+                val existing = pendingItem
+                if (existing != null) {
+                    existing.append(' ').append(content)
+                } else {
+                    pendingItem = StringBuilder(content)
+                }
             }
         }
+        flushPending()
 
         return ParsedReleaseNotes(
             features = features,
@@ -92,5 +129,12 @@ object ReleaseNotesParser {
             "change" in title || "improvement" in title || "update" in title -> Bucket.CHANGES
             else -> null
         }
+    }
+
+    private fun capitalizeFirstLetter(text: String): String {
+        if (text.isEmpty()) return text
+        val first = text[0]
+        if (!first.isLetter() || first.isUpperCase()) return text
+        return first.uppercaseChar() + text.substring(1)
     }
 }

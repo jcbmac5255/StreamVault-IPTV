@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,12 +19,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
 import com.nexus.iptv.R
 import com.nexus.iptv.domain.model.Announcement
@@ -95,57 +99,63 @@ private fun AnnouncementCard(
     } else {
         Modifier.width(520.dp)
     }
-    Row(
+    Surface(
         modifier = widthModifier.height(78.dp),
-        verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(16.dp),
+        colors = SurfaceDefaults.colors(containerColor = AppColors.SurfaceElevated),
+        border = Border(
+            border = BorderStroke(1.dp, AppColors.Brand.copy(alpha = 0.32f)),
+            shape = RoundedCornerShape(16.dp)
+        )
     ) {
-        TvClickableSurface(
-            onClick = onClick,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize(),
-            shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
-            colors = ClickableSurfaceDefaults.colors(
-                containerColor = AppColors.SurfaceElevated,
-                focusedContainerColor = AppColors.SurfaceEmphasis
-            ),
-            scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
-            border = ClickableSurfaceDefaults.border(
-                border = Border(
-                    border = BorderStroke(1.dp, AppColors.Brand.copy(alpha = 0.32f)),
-                    shape = RoundedCornerShape(16.dp)
-                ),
-                focusedBorder = Border(
-                    border = BorderStroke(2.dp, AppColors.Focus),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            )
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
+            TvClickableSurface(
+                onClick = onClick,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.Center
+                    .weight(1f)
+                    .fillMaxHeight(),
+                shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = Color.Transparent,
+                    focusedContainerColor = AppColors.SurfaceEmphasis.copy(alpha = 0.6f)
+                ),
+                scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                border = ClickableSurfaceDefaults.border(
+                    focusedBorder = Border(
+                        border = BorderStroke(2.dp, AppColors.Focus),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                )
             ) {
-                Text(
-                    text = announcement.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = AppColors.TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = announcement.body,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.TextSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = announcement.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = AppColors.TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = announcement.body,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
+            DismissPillButton(onClick = onDismiss)
+            Spacer(modifier = Modifier.width(8.dp))
         }
-        Spacer(modifier = Modifier.width(10.dp))
-        DismissPillButton(onClick = onDismiss)
     }
 }
 
@@ -153,16 +163,16 @@ private fun AnnouncementCard(
 private fun DismissPillButton(onClick: () -> Unit) {
     TvClickableSurface(
         onClick = onClick,
-        modifier = Modifier.height(40.dp),
+        modifier = Modifier.height(28.dp),
         shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(999.dp)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = AppColors.Surface,
+            containerColor = Color.Transparent,
             focusedContainerColor = AppColors.SurfaceEmphasis
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
         border = ClickableSurfaceDefaults.border(
             border = Border(
-                border = BorderStroke(1.dp, AppColors.TextTertiary.copy(alpha = 0.4f)),
+                border = BorderStroke(1.dp, AppColors.TextTertiary.copy(alpha = 0.45f)),
                 shape = RoundedCornerShape(999.dp)
             ),
             focusedBorder = Border(
@@ -173,9 +183,9 @@ private fun DismissPillButton(onClick: () -> Unit) {
     ) {
         Text(
             text = stringResource(R.string.announcement_dialog_dismiss),
-            style = MaterialTheme.typography.labelLarge,
-            color = AppColors.TextPrimary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+            style = MaterialTheme.typography.labelSmall,
+            color = AppColors.TextSecondary,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
         )
     }
 }
