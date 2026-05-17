@@ -95,7 +95,10 @@ class StreamVaultApp : Application(), SingletonImageLoader.Factory {
 
         val lastCheckedAt = preferencesRepository.lastAppUpdateCheckTimestamp.first()
         val now = System.currentTimeMillis()
-        val checkIntervalMs = 24L * 60L * 60L * 1000L
+        // Short cooldown: this function only runs on process cold start, and we'd rather pick up
+        // overnight releases the moment the user opens the app than wait a full day. The 15-min
+        // floor exists only to prevent a crash-loop from spamming GitHub.
+        val checkIntervalMs = 15L * 60L * 1000L
         if (lastCheckedAt != null && now - lastCheckedAt < checkIntervalMs) {
             return
         }
