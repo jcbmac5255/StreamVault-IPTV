@@ -1800,7 +1800,7 @@ class Media3PlayerEngine @Inject constructor(
     }
 
     private fun buildPlaybackSupportSnapshot(): String = buildString {
-        appendLine("StreamVault Playback Support Snapshot")
+        appendLine("Nexus Playback Support Snapshot")
         appendLine("requestedDecoderMode=$requestedDecoderMode")
         appendLine("activeDecoderMode=$activeDecoderMode")
         appendLine("activeDecoderPolicy=$activeDecoderPolicy")

@@ -71,8 +71,25 @@ class AppUpdateInstaller @Inject constructor(
     init {
         registerDownloadReceiver()
         scope.launch {
+            deleteLegacyApkFiles()
             refreshState()
         }
+    }
+
+    /**
+     * Removes orphan APK files left over from the pre-rebrand build, which
+     * cached downloads under `StreamVault-<version>.apk`. The current code
+     * writes `Nexus-<version>.apk`, and these legacy files are unreachable
+     * but waste device storage and (more importantly) can confuse anyone
+     * digging through the app's files directory looking for the active APK.
+     */
+    private fun deleteLegacyApkFiles() {
+        val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
+        downloadsDir.listFiles { file ->
+            file.isFile &&
+                file.name.startsWith("StreamVault-", ignoreCase = true) &&
+                file.name.endsWith(".apk", ignoreCase = true)
+        }?.forEach { runCatching { it.delete() } }
     }
 
     suspend fun refreshState(): AppUpdateDownloadState = withContext(Dispatchers.IO) {
@@ -211,8 +228,8 @@ class AppUpdateInstaller @Inject constructor(
             }
 
             val request = DownloadManager.Request(Uri.parse(downloadUrl))
-                .setTitle("StreamVault ${releaseInfo.versionName}")
-                .setDescription("Downloading the latest StreamVault update")
+                .setTitle("Nexus ${releaseInfo.versionName}")
+                .setDescription("Downloading the latest Nexus update")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setMimeType("application/vnd.android.package-archive")
                 .setAllowedOverMetered(true)

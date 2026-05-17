@@ -41,7 +41,7 @@ class GitHubReleaseChecker @Inject constructor(
             val request = Request.Builder()
                 .url(updateChannel.releaseApiUrl)
                 .header("Accept", "application/vnd.github+json")
-                .header("User-Agent", "StreamVault-Update-Checker")
+                .header("User-Agent", "Nexus-Update-Checker")
                 .build()
 
             okHttpClient.newCall(request).execute().use { response ->

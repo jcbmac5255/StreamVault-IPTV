@@ -87,13 +87,13 @@ object CrashReportStore {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        return Intent.createChooser(sendIntent, "Share StreamVault crash report")
+        return Intent.createChooser(sendIntent, "Share Nexus crash report")
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     private fun buildReport(context: Context, thread: Thread, throwable: Throwable): String {
         return buildString {
-            appendLine("StreamVault Crash Report")
+            appendLine("Nexus Crash Report")
             appendLine("========================")
             appendLine("Timestamp: ${OffsetDateTime.now().format(formatter)}")
             appendLine("App Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
