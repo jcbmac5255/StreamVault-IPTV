@@ -126,7 +126,11 @@ class EpgViewModelTest {
             programReminderManager = programReminderManager,
             getCustomCategories = getCustomCategories,
             scheduleRecording = scheduleRecording,
-            recordingManager = recordingManager
+            recordingManager = recordingManager,
+            // Preview player engine is unused by these tests — the preview action is never invoked.
+            previewPlayerEngineProvider = javax.inject.Provider {
+                error("Preview player engine should not be requested in this test")
+            }
         ).also(createdViewModels::add)
 
     private fun clearViewModel(viewModel: EpgViewModel) {
