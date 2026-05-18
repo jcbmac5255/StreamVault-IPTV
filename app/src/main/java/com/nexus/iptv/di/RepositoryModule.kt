@@ -67,6 +67,9 @@ abstract class RepositoryModule {
     abstract fun bindAnnouncementRepository(impl: AnnouncementRepositoryImpl): AnnouncementRepository
 
     @Binds @Singleton
+    abstract fun bindRemoteFavoriteRepository(impl: RemoteFavoriteRepositoryImpl): RemoteFavoriteRepository
+
+    @Binds @Singleton
     abstract fun bindSyncMetadataRepository(impl: SyncMetadataRepositoryImpl): SyncMetadataRepository
 
     @Binds @Singleton

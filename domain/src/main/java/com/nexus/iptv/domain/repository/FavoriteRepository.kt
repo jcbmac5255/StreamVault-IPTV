@@ -22,7 +22,13 @@ interface FavoriteRepository {
     fun getGroupFavoriteCounts(providerId: Long, contentType: ContentType): Flow<Map<Long, Int>>
     fun getGroupFavoriteCounts(providerIds: List<Long>, contentType: ContentType): Flow<Map<Long, Int>>
 
-    suspend fun addFavorite(providerId: Long, contentId: Long, contentType: ContentType, groupId: Long? = null): Result<Unit>
+    suspend fun addFavorite(
+        providerId: Long,
+        contentId: Long,
+        contentType: ContentType,
+        groupId: Long? = null,
+        syncToRemote: Boolean = true
+    ): Result<Unit>
     suspend fun removeFavorite(providerId: Long, contentId: Long, contentType: ContentType, groupId: Long? = null): Result<Unit>
     suspend fun moveFavoriteToGroup(
         providerId: Long,

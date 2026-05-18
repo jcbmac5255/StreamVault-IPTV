@@ -19,7 +19,8 @@ import javax.inject.Singleton
 class FavoriteRepositoryImpl @Inject constructor(
     private val favoriteDao: FavoriteDao,
     private val virtualGroupDao: VirtualGroupDao,
-    private val transactionRunner: DatabaseTransactionRunner
+    private val transactionRunner: DatabaseTransactionRunner,
+    private val remoteMirror: FavoriteRemoteMirror
 ) : FavoriteRepository {
     private companion object {
         const val POSITION_STEP = 1_024
@@ -81,7 +82,8 @@ class FavoriteRepositoryImpl @Inject constructor(
         providerId: Long,
         contentId: Long,
         contentType: ContentType,
-        groupId: Long?
+        groupId: Long?,
+        syncToRemote: Boolean
     ): Result<Unit> = try {
         transactionRunner.inTransaction {
             validateGroupAssignment(providerId, contentType, groupId)
@@ -98,6 +100,9 @@ class FavoriteRepositoryImpl @Inject constructor(
             )
             favoriteDao.insert(favorite.toEntity())
         }
+        if (syncToRemote && groupId == null) {
+            remoteMirror.pushAdd(providerId, contentId, contentType)
+        }
         Result.success(Unit)
     } catch (e: Exception) {
         Result.error("Failed to add favorite: ${e.message}", e)
@@ -105,6 +110,9 @@ class FavoriteRepositoryImpl @Inject constructor(
 
     override suspend fun removeFavorite(providerId: Long, contentId: Long, contentType: ContentType, groupId: Long?): Result<Unit> = try {
         favoriteDao.delete(providerId, contentId, contentType.name, groupId)
+        if (groupId == null) {
+            remoteMirror.pushRemove(providerId, contentId, contentType)
+        }
         Result.success(Unit)
     } catch (e: Exception) {
         Result.error("Failed to remove favorite: ${e.message}", e)

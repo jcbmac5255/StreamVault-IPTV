@@ -95,6 +95,7 @@ class NexusSignInViewModel @Inject constructor(
     private val validateAndAddProvider: ValidateAndAddProvider,
     private val xtreamIndexJobDao: XtreamIndexJobDao,
     private val programDao: ProgramDao,
+    private val favoriteRestorer: NexusFavoriteRestorer,
     syncProgressBus: SyncProgressBus
 ) : ViewModel() {
 
@@ -174,9 +175,9 @@ class NexusSignInViewModel @Inject constructor(
 
             when (result) {
                 is ValidateAndAddProviderResult.Success ->
-                    completeAfterDeepIndex(result.provider.id)
+                    completeAfterDeepIndex(result.provider.id, trimmedUser)
                 is ValidateAndAddProviderResult.SavedWithWarning ->
-                    completeAfterDeepIndex(result.provider.id)
+                    completeAfterDeepIndex(result.provider.id, trimmedUser)
                 is ValidateAndAddProviderResult.ValidationError ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
                 is ValidateAndAddProviderResult.Error ->
@@ -192,7 +193,7 @@ class NexusSignInViewModel @Inject constructor(
      * MovieDao/SeriesDao (which is populated during the foreground catalog
      * sync, so the total is known the moment we start observing here).
      */
-    private suspend fun completeAfterDeepIndex(providerId: Long) {
+    private suspend fun completeAfterDeepIndex(providerId: Long, username: String) {
         val deepIndexFlow = xtreamIndexJobDao.observeForProvider(providerId)
 
         // Phase 1: MOVIES. Bar tracks the movie job's own progress (0..100%).
@@ -214,6 +215,11 @@ class NexusSignInViewModel @Inject constructor(
         awaitEpgDone(providerId, deepIndexFlow)
         pinEpgToFinal(providerId, deepIndexFlow)
         delay(PHASE_COMPLETE_HOLD_MS)
+
+        // Restore the user's previously-saved favorites from PocketBase. Errors are
+        // logged inside the restorer and never block sign-in; users with no remote
+        // favorites simply land on an empty list, same as before this feature.
+        runCatching { favoriteRestorer.restoreFor(providerId, username) }
 
         _uiState.update {
             it.copy(

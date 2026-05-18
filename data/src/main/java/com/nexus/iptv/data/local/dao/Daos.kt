@@ -457,6 +457,9 @@ abstract class ChannelDao {
         WHERE provider_id = :providerId AND (logo_url IS NULL OR logo_url = '')
     """)
     abstract suspend fun backfillEpgIcons(providerId: Long)
+
+    @Query("SELECT id FROM channels WHERE provider_id = :providerId AND stream_id = :streamId LIMIT 1")
+    abstract suspend fun findIdByStreamId(providerId: Long, streamId: Long): Long?
 }
 
 @Dao

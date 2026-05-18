@@ -33,11 +33,13 @@ class FavoriteRepositoryImplTest {
     private val transactionRunner = object : DatabaseTransactionRunner {
         override suspend fun <T> inTransaction(block: suspend () -> T): T = block()
     }
+    private val remoteMirror: FavoriteRemoteMirror = mock()
 
     private val repository = FavoriteRepositoryImpl(
         favoriteDao = favoriteDao,
         virtualGroupDao = virtualGroupDao,
-        transactionRunner = transactionRunner
+        transactionRunner = transactionRunner,
+        remoteMirror = remoteMirror
     )
 
     @Test
@@ -75,7 +77,8 @@ class FavoriteRepositoryImplTest {
         val repository = FavoriteRepositoryImpl(
             favoriteDao = favoriteDao,
             virtualGroupDao = virtualGroupDao,
-            transactionRunner = transactionRunner
+            transactionRunner = transactionRunner,
+            remoteMirror = remoteMirror
         )
 
         val result = repository.addFavorite(
