@@ -151,8 +151,12 @@ class OkHttpXtreamApiServiceTest {
             json = json
         )
 
+        // Generous timeouts: this test only verifies that cancellation propagates from the
+        // coroutine through to the underlying OkHttp call. The previous 100ms / 500ms budget
+        // was tight enough that slow CI runners occasionally produced a false negative
+        // before OkHttp had even started the request.
         val failure = runCatching {
-            withTimeout(100) {
+            withTimeout(2_000) {
                 service.streamLiveStreamRows(
                     "https://example.test/player_api.php?action=get_live_streams&category_id=7"
                 ) { }
@@ -160,7 +164,7 @@ class OkHttpXtreamApiServiceTest {
         }.exceptionOrNull()
 
         assertThat(failure).isNotNull()
-        withTimeout(500) {
+        withTimeout(10_000) {
             cancellationObserved.await()
         }
     }
