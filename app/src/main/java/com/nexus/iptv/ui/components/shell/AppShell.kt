@@ -301,6 +301,9 @@ private fun TopNavigationBar(
                         }
                     )
                 }
+                // Always-visible subscription expiration date, sits to the right of the
+                // last nav tab (Settings) with a bit of breathing room from the Spacer.
+                NavBarExpirationPill()
             }
             if (actions != null) {
                 Row(
