@@ -85,8 +85,13 @@ class GetCustomCategoriesTest {
         override fun getGroupFavoriteCounts(providerIds: List<Long>, contentType: ContentType): Flow<Map<Long, Int>> =
             error("Not used in test")
 
-        override suspend fun addFavorite(providerId: Long, contentId: Long, contentType: ContentType, groupId: Long?) =
-            error("Not used in test")
+        override suspend fun addFavorite(
+            providerId: Long,
+            contentId: Long,
+            contentType: ContentType,
+            groupId: Long?,
+            syncToRemote: Boolean
+        ) = error("Not used in test")
 
         override suspend fun removeFavorite(providerId: Long, contentId: Long, contentType: ContentType, groupId: Long?) =
             error("Not used in test")
