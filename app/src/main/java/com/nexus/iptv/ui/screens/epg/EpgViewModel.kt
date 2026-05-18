@@ -1822,12 +1822,45 @@ class EpgViewModel @Inject constructor(
      */
     fun selectPreviewChannel(channel: Channel): Boolean {
         val current = _previewChannel.value
-        if (current?.id == channel.id) return false
-
-        previewJob?.cancel()
-        releasePreviewEngine()
+        if (current?.id == channel.id && _previewEngine.value != null) return false
 
         _previewChannel.value = channel
+        startPreviewPlaybackInternal(channel)
+        return true
+    }
+
+    /**
+     * Frees the preview's player engine when the user navigates away from the Guide so it
+     * doesn't fight the full-screen player for the xtream connection slot or hold its surface.
+     * The previewed channel stays in state so [resumePreview] can re-prepare on return.
+     */
+    fun pausePreview() {
+        previewJob?.cancel()
+        previewJob = null
+        releasePreviewEngine()
+    }
+
+    /**
+     * Re-creates the preview engine for whatever channel was previewing before [pausePreview]
+     * (or whichever channel the user last selected). No-op if there's no preview channel or
+     * the engine is still alive.
+     */
+    fun resumePreview() {
+        if (_previewEngine.value != null) return
+        val channel = _previewChannel.value ?: return
+        startPreviewPlaybackInternal(channel)
+    }
+
+    fun clearPreview() {
+        previewJob?.cancel()
+        previewJob = null
+        releasePreviewEngine()
+        _previewChannel.value = null
+    }
+
+    private fun startPreviewPlaybackInternal(channel: Channel) {
+        previewJob?.cancel()
+        releasePreviewEngine()
         previewJob = viewModelScope.launch {
             val engine = previewPlayerEngineProvider.get()
             (engine as? com.nexus.iptv.player.Media3PlayerEngine)?.apply {
@@ -1858,14 +1891,6 @@ class EpgViewModel @Inject constructor(
                 _previewEngine.value = null
             }
         }
-        return true
-    }
-
-    fun clearPreview() {
-        previewJob?.cancel()
-        previewJob = null
-        releasePreviewEngine()
-        _previewChannel.value = null
     }
 
     private fun releasePreviewEngine() {
