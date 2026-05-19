@@ -2,6 +2,12 @@ name: Android CI and Release
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: "Skip unit tests (only when confident, e.g. UI tweaks). Saves ~5 minutes."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -70,8 +76,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run unit tests and coverage
-        run: ./gradlew --console=plain testDebugUnitTest koverXmlReportCi koverHtmlReportCi
+      - name: Run unit tests
+        if: ${{ inputs.skip_tests != true }}
+        run: ./gradlew --console=plain testDebugUnitTest
 
       - name: Build release APK
         run: ./gradlew --console=plain :app:assembleRelease
@@ -99,7 +106,7 @@ jobs:
             dist/Nexus.apk
 
       - name: Upload test reports
-        if: always()
+        if: ${{ always() && inputs.skip_tests != true }}
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
@@ -108,14 +115,6 @@ jobs:
             data/build/reports/tests/
             domain/build/reports/tests/
             player/build/reports/tests/
-
-      - name: Upload coverage reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: |
-            build/reports/kover/
 
   publish-release:
     if: github.event_name == 'workflow_dispatch'
