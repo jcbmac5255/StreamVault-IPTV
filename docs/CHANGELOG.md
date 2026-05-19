@@ -2,6 +2,27 @@
 
 All notable product changes are recorded in this document.
 
+## [1.1.8] - 2026-05-18
+
+### Added
+
+- Live TV now has a category sidebar on the left that switches the channels on click.
+- Settings → Provider now shows account info (username, expiration, max connections, allowed formats).
+- Dashboard auto-checks for updates when it comes back to foreground, not only on cold start.
+- "Open update" on the Dashboard now jumps straight to Settings → About and highlights "Check for updates".
+
+### Changed
+
+- The Live TV grid is now larger and easier to read at the default density.
+- Sign-in errors say what actually went wrong (bad credentials, network, timeout, server, etc.).
+- Removed the category dropdown from the Live TV toolbar in favour of the new sidebar.
+
+### Fixed
+
+- Settings → Provider → Sync no longer hangs at "Resolving EPG mappings" after the catalog refreshes.
+- "Last synced" now updates when you sync via the custom sync dialog, not only via Sync Now.
+- Cold-start refresh of the Android-TV Live Channels catalog no longer blocks the app launch.
+
 ## [1.1.7] - 2026-05-17
 
 ### Added
