@@ -1,6 +1,7 @@
 package com.nexus.iptv.ui.screens.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -121,12 +122,20 @@ internal fun SettingsProviderManagementDialogs(
     val pendingDeleteProviderId = providerState.pendingDeleteProviderId
     if (pendingDeleteProviderId != null) {
         val providerToDelete = uiState.providers.firstOrNull { it.id == pendingDeleteProviderId }
+        LaunchedEffect(pendingDeleteProviderId, providerToDelete, uiState.isDeletingProvider) {
+            // After deletion the provider disappears from the list. Clear the pending id
+            // so the dialog dismisses instead of lingering with the stale state.
+            if (providerToDelete == null && !uiState.isDeletingProvider) {
+                providerState.pendingDeleteProviderId = null
+            }
+        }
         val providerName = providerToDelete?.name ?: "this provider"
         PremiumDialog(
             title = "Delete Provider",
             subtitle = "Delete \"$providerName\"? This will permanently remove all its channels, programs, and sync data.",
             onDismissRequest = { if (!uiState.isDeletingProvider) providerState.pendingDeleteProviderId = null },
             widthFraction = 0.48f,
+            heightFraction = null,
             content = {},
             footer = {
                 PremiumDialogFooterButton(

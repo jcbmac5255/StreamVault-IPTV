@@ -78,6 +78,15 @@ class XtreamStreamUrlResolver @Inject constructor(
         val provider = providerId?.let { id -> providerDao.getById(id) }
 
         if (url.isNotBlank() && !XtreamUrlFactory.isInternalStreamUrl(url) && !StalkerUrlFactory.isInternalStreamUrl(url)) {
+            if (provider?.type == ProviderType.XTREAM_CODES) {
+                resolveDirectXtreamUrl(
+                    provider = provider,
+                    url = url,
+                    fallbackStreamId = fallbackStreamId,
+                    fallbackContentType = fallbackContentType,
+                    fallbackContainerExtension = fallbackContainerExtension
+                )?.let { return it }
+            }
             if (provider?.type == ProviderType.STALKER_PORTAL) {
                 resolveDirectStalkerUrl(
                     provider = provider,
@@ -150,6 +159,39 @@ class XtreamStreamUrlResolver @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun resolveDirectXtreamUrl(
+        provider: ProviderEntity,
+        url: String,
+        fallbackStreamId: Long?,
+        fallbackContentType: ContentType?,
+        fallbackContainerExtension: String?
+    ): ResolvedStreamUrl? {
+        val parsed = XtreamUrlFactory.parseCredentialedStreamUrl(url, provider.id)
+        val kind = parsed?.kind ?: fallbackContentType?.let(XtreamUrlFactory::kindForContentType) ?: return null
+        if (kind != XtreamStreamKind.LIVE) {
+            return null
+        }
+        val streamId = parsed?.streamId ?: fallbackStreamId?.takeIf { it > 0L } ?: return null
+        val ext = parsed?.containerExtension ?: fallbackContainerExtension
+        val decryptedPassword = credentialCrypto.decryptIfNeeded(provider.password)
+        val resolvedUrl = XtreamUrlFactory.buildPlaybackUrl(
+            serverUrl = provider.serverUrl,
+            username = provider.username,
+            password = decryptedPassword,
+            kind = kind,
+            streamId = streamId,
+            containerExtension = ext
+        )
+        // NB: upstream wraps this in `applyPlaybackRequestProfile` which we don't have —
+        // our HTTP client picks up the provider user-agent/headers via interceptors at
+        // request time, so a plain ResolvedStreamUrl is fine here.
+        return ResolvedStreamUrl(
+            url = resolvedUrl,
+            expirationTime = extractStreamExpirationTime(resolvedUrl),
+            containerExtension = ext
+        )
     }
 
     private suspend fun resolveDirectStalkerUrl(

@@ -1056,8 +1056,9 @@ class PlayerViewModel @Inject constructor(
                 playbackState = adoptedEngine.playbackState.value,
                 playerStats = adoptedEngine.playerStats.value
             )
-            // Detach the Home preview surface before Player binds its own.
-            adoptedEngine.clearRenderBinding()
+            // (Preview render binding is detached inside PlayerViewBinder via Media3's
+            // switchTargetView so the new fullscreen surface attaches before the old one
+            // is released — preventing the green-screen / stale frame TextureView bug.)
             // Media3 requires a globally unique session ID. Release the main engine's
             // session before the adopted live engine enables its own replacement.
             mainPlayerEngine.setMediaSessionEnabled(false)

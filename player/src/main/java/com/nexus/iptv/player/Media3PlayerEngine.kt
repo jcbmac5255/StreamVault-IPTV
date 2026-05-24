@@ -57,6 +57,7 @@ import com.nexus.iptv.player.playback.PlayerRetryPolicy
 import com.nexus.iptv.player.playback.PlayerTimeoutProfile
 import com.nexus.iptv.player.playback.PreloadCoordinator
 import com.nexus.iptv.player.playback.ResolvedStreamType
+import com.nexus.iptv.player.playback.resolveRetryAttemptAfterPlaybackStarted
 import com.nexus.iptv.player.playback.resolveRetryAttemptAfterReady
 import com.nexus.iptv.player.playback.resolveRetrySeekPositionMs
 import com.nexus.iptv.player.playback.StreamTypeResolver
@@ -1213,8 +1214,7 @@ class Media3PlayerEngine @Inject constructor(
                     _retryStatus.value = null
                     retryAttempt = resolveRetryAttemptAfterReady(
                         currentAttempt = retryAttempt,
-                        playbackStarted = playbackStarted,
-                        isCurrentMediaItemLive = exoPlayer?.isCurrentMediaItemLive == true
+                        playbackStarted = playbackStarted
                     )
                     if (isPlayingTimeshiftSnapshot && pendingTimeshiftSeekToEnd) {
                         pendingTimeshiftSeekToEnd = false
@@ -1363,6 +1363,7 @@ class Media3PlayerEngine @Inject constructor(
     private fun markPlaybackStarted(reason: String) {
         if (playbackStarted) return
         playbackStarted = true
+        retryAttempt = resolveRetryAttemptAfterPlaybackStarted(retryAttempt)
         Log.i(
             TAG,
             "$reason streamType=$currentResolvedStreamType timeoutProfile=$currentTimeoutProfile audioPath=$audioOutputPath compatibilitySource=$compatibilityDecisionSource target=${PlaybackLogSanitizer.sanitizeUrl(lastStreamInfo?.url)}"

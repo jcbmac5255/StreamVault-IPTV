@@ -114,7 +114,14 @@ class PlayerRetryPolicy(
                 else -> 1
             }
 
-            PlaybackErrorCategory.SOURCE_MALFORMED -> if (playbackStarted) 0 else 1
+            PlaybackErrorCategory.SOURCE_MALFORMED -> when {
+                // A malformed segment after live playback has started is usually a transient
+                // broken segment that recovers — give it a bounded retry budget. Progressive
+                // playback stays fatal so corrupt VOD files surface immediately.
+                streamContext.isLive && playbackStarted -> 3
+                playbackStarted -> 0
+                else -> 1
+            }
             PlaybackErrorCategory.UNKNOWN -> if (playbackStarted) 0 else 1
         }
     }

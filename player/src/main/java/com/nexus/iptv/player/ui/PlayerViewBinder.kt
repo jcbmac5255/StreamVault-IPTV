@@ -36,8 +36,11 @@ class PlayerViewBinder(
         val playerView = renderView as? PlayerView ?: return
         boundResizeMode = resizeMode
         if (boundPlayerView !== playerView) {
-            boundPlayerView?.player = null
-            playerView.player = player
+            // PlayerView.switchTargetView attaches the new view BEFORE detaching the old
+            // one — Media3's recommended swap order for live preview→fullscreen handoff.
+            // Avoids the TextureView green-screen / stale-frame bug caused by the player
+            // briefly having no surface during the swap.
+            PlayerView.switchTargetView(player, boundPlayerView, playerView)
             boundPlayerView = playerView
         } else if (playerView.player !== player) {
             playerView.player = player
