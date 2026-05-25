@@ -7,8 +7,8 @@ import com.nexus.iptv.data.remote.dto.XtreamSeriesInfoResponse
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -137,7 +137,7 @@ class OkHttpXtreamApiServiceTest {
     }
 
     @Test
-    fun `streamLiveStreamRows cancels the underlying call when coroutine times out`() = runTest(timeout = 60.seconds) {
+    fun `streamLiveStreamRows cancels the underlying call when coroutine times out`() = runBlocking {
         val cancellationObserved = CompletableDeferred<Unit>()
         val service = OkHttpXtreamApiService(
             client = OkHttpClient.Builder()
