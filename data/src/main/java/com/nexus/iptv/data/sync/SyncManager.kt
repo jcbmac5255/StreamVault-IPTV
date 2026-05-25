@@ -3066,17 +3066,15 @@ class SyncManager @Inject constructor(
         previousHealthyStreak: Int,
         sawSequentialStress: Boolean
     ): SequentialProviderAdaptation {
-        if (sawSequentialStress) {
-            return SequentialProviderAdaptation(rememberSequential = true, healthyStreak = 0)
-        }
-        if (!previousRemembered) {
-            return SequentialProviderAdaptation(rememberSequential = false, healthyStreak = 0)
-        }
-        val nextHealthyStreak = (previousHealthyStreak + 1).coerceAtMost(2)
-        return if (nextHealthyStreak >= 2) {
-            SequentialProviderAdaptation(rememberSequential = false, healthyStreak = 0)
+        // One clean run clears the remembered-stress flag. The previous policy
+        // required two consecutive healthy runs but that left the "Live sync
+        // needs attention" warning hanging around after an obviously-fine sync
+        // and confused users into thinking the app was broken. Re-arming on a
+        // fresh stress signal is still automatic.
+        return if (sawSequentialStress) {
+            SequentialProviderAdaptation(rememberSequential = true, healthyStreak = 0)
         } else {
-            SequentialProviderAdaptation(rememberSequential = true, healthyStreak = nextHealthyStreak)
+            SequentialProviderAdaptation(rememberSequential = false, healthyStreak = 0)
         }
     }
 

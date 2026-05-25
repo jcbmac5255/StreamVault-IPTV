@@ -2,6 +2,12 @@
 
 All notable product changes are recorded in this document.
 
+## [1.1.13] - 2026-05-25
+
+### Fixed
+
+- "Live sync needs attention" warning now clears after one healthy sync instead of two so it doesn't linger after the issue is gone.
+
 ## [1.1.12] - 2026-05-25
 
 ### Changed
